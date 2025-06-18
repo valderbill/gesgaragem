@@ -1,9 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    use Carbon\Carbon;
+@endphp
+
 <div class="container">
-    
-    <a href="{{ route('registro_veiculos.create') }}" class="btn btn-primary mb-3">Novo Registro</a>
+    {{-- Botões de Ações --}}
+    <div class="mb-3 d-flex justify-content-between">
+        <a href="{{ route('registro_veiculos.create') }}" class="btn btn-primary">Novo Registro</a>
+
+        <form action="{{ route('registro_veiculos.limpar_com_saida') }}" method="POST" onsubmit="return confirm('Deseja realmente excluir todos os registros que já possuem saída registrada?')">
+            @csrf
+            <button type="submit" class="btn btn-danger">Limpar Registros com Saída</button>
+        </form>
+    </div>
 
     {{-- Painel de Contadores Digitais --}}
     <div class="mb-4">
@@ -19,10 +30,12 @@
         </div>
     </div>
 
+    {{-- Mensagem de Sucesso --}}
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    {{-- Tabela de Registros --}}
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -42,46 +55,54 @@
         </thead>
         <tbody>
             @foreach ($registros as $registro)
-                <tr>
-                    <td>{{ $registro->placa }}</td>
-                    <td>{{ $registro->marca }}</td>
-                    <td>{{ $registro->modelo }}</td>
-                    <td>{{ $registro->cor }}</td>
-                    <td>{{ $registro->tipo }}</td>
-                    <td>{{ $registro->motoristaEntrada->nome ?? 'N/A' }}</td>
-                    <td>
-                        @if (!$registro->horario_saida)
-                            <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
-                                @csrf
-                                <select name="motorista_saida_id" class="form-control form-control-sm" required>
-                                    <option value="" disabled selected>Selecione motorista</option>
-                                    @foreach($motoristas as $motorista)
-                                        <option value="{{ $motorista->id }}">{{ $motorista->nome }}</option>
-                                    @endforeach
-                                </select>
-                    </td>
-                    <td>{{ $registro->horario_entrada }}</td>
-                    <td>{{ $registro->horario_saida ?? 'N/A' }}</td>
-                    <td>{{ $registro->usuarioLogado->nome ?? 'N/A' }}</td>
-                    <td>{{ $registro->usuarioSaida->nome ?? 'N/A' }}</td>
-                    <td>
-                                <button type="submit" class="btn btn-success btn-sm mt-1"
+            <tr>
+                <td>{{ $registro->placa }}</td>
+                <td>{{ $registro->marca }}</td>
+                <td>{{ $registro->modelo }}</td>
+                <td>{{ $registro->cor }}</td>
+                <td>{{ $registro->tipo }}</td>
+                <td>{{ $registro->motoristaEntrada->nome ?? 'N/A' }}</td>
+
+                <td>
+                    @if (!$registro->horario_saida)
+                        <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
+                            @csrf
+                            <select name="motorista_saida_id" class="form-control form-control-sm" required>
+                                <option value="" disabled selected>Selecione motorista</option>
+                                @foreach($motoristas as $motorista)
+                                    <option value="{{ $motorista->id }}">{{ $motorista->nome }}</option>
+                                @endforeach
+                            </select>
+                    @else
+                        {{ $registro->motoristaSaida->nome ?? 'N/A' }}
+                    @endif
+                </td>
+
+                <td>
+                    {{ $registro->horario_entrada 
+                        ? Carbon::parse($registro->horario_entrada)->format('d/m/Y H:i:s') 
+                        : 'N/A' }}
+                </td>
+                <td>
+                    {{ $registro->horario_saida 
+                        ? Carbon::parse($registro->horario_saida)->format('d/m/Y H:i:s') 
+                        : 'N/A' }}
+                </td>
+                <td>{{ $registro->usuarioLogado->nome ?? 'N/A' }}</td>
+                <td>{{ $registro->usuarioSaida->nome ?? 'N/A' }}</td>
+
+                <td>
+                    @if (!$registro->horario_saida)
+                            <button type="submit" class="btn btn-success btn-sm mt-1"
                                     onclick="return confirm('Confirmar registro de saída deste veículo?')">
-                                    Registrar Saída
-                                </button>
-                            </form>
-                        @else
-                            {{ $registro->motoristaSaida->nome ?? 'N/A' }}
-                    </td>
-                    <td>{{ $registro->horario_entrada }}</td>
-                    <td>{{ $registro->horario_saida }}</td>
-                    <td>{{ $registro->usuarioLogado->nome ?? 'N/A' }}</td>
-                    <td>{{ $registro->usuarioSaida->nome ?? 'N/A' }}</td>
-                    <td>
+                                Registrar Saída
+                            </button>
+                        </form>
+                    @else
                         <button class="btn btn-secondary btn-sm" disabled>Saída Registrada</button>
-                    </td>
-                        @endif
-                </tr>
+                    @endif
+                </td>
+            </tr>
             @endforeach
         </tbody>
     </table>

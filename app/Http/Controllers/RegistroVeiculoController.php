@@ -14,12 +14,19 @@ class RegistroVeiculoController extends Controller
 {
     public function index()
     {
+        $estacionamentoId = auth()->user()->estacionamento_id ?? session('estacionamento_id');
+
         $registros = RegistroVeiculo::with([
             'veiculo',
             'motoristaEntrada',
             'motoristaSaida',
             'estacionamento'
-        ])->paginate(10);
+        ])
+        ->when($estacionamentoId, function ($query) use ($estacionamentoId) {
+            $query->where('estacionamento_id', $estacionamentoId);
+        })
+        ->orderByDesc('horario_entrada')
+        ->paginate(10);
 
         $motoristas = Motorista::all();
 
@@ -31,7 +38,7 @@ class RegistroVeiculoController extends Controller
         $veiculos = Veiculo::all();
         $motoristas = Motorista::all();
         $usuarios = Usuario::where('ativo', true)->get();
-        $estacionamentos = Estacionamento::all(); // ✅ necessário para o formulário
+        $estacionamentos = Estacionamento::all();
 
         return view('registro_veiculos.create', compact('veiculos', 'motoristas', 'usuarios', 'estacionamentos'));
     }
@@ -48,7 +55,7 @@ class RegistroVeiculoController extends Controller
             'motorista_saida_id' => 'nullable|exists:motoristas_oficiais,id',
             'horario_saida' => 'nullable|date',
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
-            'estacionamento_id' => 'required|exists:estacionamentos,id' // ✅ incluído
+            'estacionamento_id' => 'required|exists:estacionamentos,id'
         ]);
 
         $registroAberto = RegistroVeiculo::where('veiculo_id', $request->veiculo_id)
@@ -74,7 +81,7 @@ class RegistroVeiculoController extends Controller
                 'motorista_saida_id',
                 'horario_saida',
                 'usuario_saida_id',
-                'estacionamento_id' // ✅ incluído no array
+                'estacionamento_id'
             ]),
             [
                 'placa' => $veiculo->placa,
@@ -149,7 +156,7 @@ class RegistroVeiculoController extends Controller
         return redirect()->route('registro_veiculos.index')->with('success', 'Registro deletado com sucesso.');
     }
 
-    public function registrarSaida($id)
+    public function registrarSaida(Request $request, $id)
     {
         $registro = RegistroVeiculo::findOrFail($id);
 
@@ -158,11 +165,24 @@ class RegistroVeiculoController extends Controller
                 ->with('error', 'Saída já registrada para este veículo.');
         }
 
+        $request->validate([
+            'motorista_saida_id' => 'required|exists:motoristas_oficiais,id',
+        ]);
+
         $registro->horario_saida = now();
         $registro->usuario_saida_id = Auth::id();
+        $registro->motorista_saida_id = $request->motorista_saida_id;
         $registro->save();
 
         return redirect()->route('registro_veiculos.index')
             ->with('success', 'Saída registrada com sucesso!');
+    }
+
+    public function limparComSaida()
+    {
+        $deletados = RegistroVeiculo::whereNotNull('horario_saida')->delete();
+
+        return redirect()->route('registro_veiculos.index')
+            ->with('success', "$deletados registro(s) com saída foram removidos.");
     }
 }

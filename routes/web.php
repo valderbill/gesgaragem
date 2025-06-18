@@ -84,6 +84,10 @@ Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'a
 Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
 Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])->name('registro_veiculos.registrar_saida');
 
+// ✅ Rota para limpar registros com saída
+Route::post('/registro-veiculos/limpar-com-saida', [RegistroVeiculoController::class, 'limparComSaida'])
+    ->name('registro_veiculos.limpar_com_saida');
+
 // Painel de dados
 Route::get('/painel/dados', [PainelController::class, 'dados'])->name('painel.dados');
 
