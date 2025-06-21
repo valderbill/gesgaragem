@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('styles')
+    {{-- Estilos adicionais desta view (se necessário futuramente) --}}
+@endsection
+
 @section('content')
 @php
     use Carbon\Carbon;
@@ -18,14 +22,16 @@
 
     {{-- Painel de Contadores Digitais --}}
     <div class="mb-4">
-        <div style="display:flex; justify-content: space-around; text-align:center; font-family: monospace;">
+        <div class="row text-center justify-content-center">
             @foreach (['OFICIAL', 'PARTICULAR', 'MOTO'] as $tipo)
-            <div style="border:1px solid #ddd; padding:20px; border-radius:8px; width:200px;">
-                <div style="font-size: 2.5rem; font-weight: bold;" id="total-{{ $tipo }}">0</div>
-                <div>Total {{ ucfirst(strtolower($tipo)) }}</div>
-                <div style="font-size: 1.8rem; color: green;" id="disponiveis-{{ $tipo }}">0</div>
-                <div>Disponíveis</div>
-            </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="border rounded p-3 shadow-sm">
+                        <div class="digital-counter" id="total-{{ $tipo }}">0</div>
+                        <div class="mt-2">Total {{ ucfirst(strtolower($tipo)) }}</div>
+                        <div class="digital-counter mt-3" id="disponiveis-{{ $tipo }}">0</div>
+                        <div>Disponíveis</div>
+                    </div>
+                </div>
             @endforeach
         </div>
     </div>

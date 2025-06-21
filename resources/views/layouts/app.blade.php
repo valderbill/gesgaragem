@@ -11,6 +11,12 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- Estilo Digital -->
+    <link href="{{ asset('css/digital.css') }}" rel="stylesheet">
+
+    <!-- Estilos adicionais das views -->
+    @yield('styles')
+
     <style>
         .avatar {
             width: 50px;
@@ -87,6 +93,7 @@
         @yield('content')
     </div>
 
-    @yield('scripts') <!-- ADICIONE ESTA LINHA -->
+    <!-- Scripts das views -->
+    @yield('scripts')
 </body>
 </html>

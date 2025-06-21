@@ -1,0 +1,16 @@
+@font-face {
+    font-family: 'Digital';
+    src: url('/fonts/digital-7.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.digital-counter {
+    font-family: 'Digital', monospace;
+    font-size: 48px;
+    color: #00FF00;
+    background-color: #000;
+    padding: 10px 0;
+    border-radius: 12px;
+    box-shadow: 0 0 10px #00FF00;
+}
