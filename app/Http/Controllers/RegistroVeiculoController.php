@@ -12,19 +12,21 @@ use Illuminate\Support\Facades\Auth;
 
 class RegistroVeiculoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $estacionamentoId = auth()->user()->estacionamento_id ?? session('estacionamento_id');
+        $filtro = $request->input('filtro');
 
         $registros = RegistroVeiculo::with([
             'veiculo',
             'motoristaEntrada',
             'motoristaSaida',
+            'usuarioLogado',
+            'usuarioSaida',
             'estacionamento'
         ])
-        ->when($estacionamentoId, function ($query) use ($estacionamentoId) {
-            $query->where('estacionamento_id', $estacionamentoId);
-        })
+        ->when($estacionamentoId, fn($query) => $query->where('estacionamento_id', $estacionamentoId))
+        ->when($filtro === 'sem_saida', fn($query) => $query->whereNull('horario_saida'))
         ->orderByDesc('horario_entrada')
         ->paginate(10);
 
@@ -55,7 +57,8 @@ class RegistroVeiculoController extends Controller
             'motorista_saida_id' => 'nullable|exists:motoristas_oficiais,id',
             'horario_saida' => 'nullable|date',
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
-            'estacionamento_id' => 'required|exists:estacionamentos,id'
+            'estacionamento_id' => 'required|exists:estacionamentos,id',
+            'quantidade_passageiros' => 'required|integer|min:0|max:10',
         ]);
 
         $registroAberto = RegistroVeiculo::where('veiculo_id', $request->veiculo_id)
@@ -81,7 +84,8 @@ class RegistroVeiculoController extends Controller
                 'motorista_saida_id',
                 'horario_saida',
                 'usuario_saida_id',
-                'estacionamento_id'
+                'estacionamento_id',
+                'quantidade_passageiros',
             ]),
             [
                 'placa' => $veiculo->placa,
@@ -130,6 +134,7 @@ class RegistroVeiculoController extends Controller
             'horario_saida' => 'nullable|date',
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
+            'quantidade_passageiros' => 'required|integer|min:0|max:10',
         ]);
 
         $registro->update($request->only([
@@ -143,6 +148,7 @@ class RegistroVeiculoController extends Controller
             'horario_saida',
             'usuario_saida_id',
             'estacionamento_id',
+            'quantidade_passageiros',
         ]));
 
         return redirect()->route('registro_veiculos.index')->with('success', 'Registro atualizado com sucesso.');
@@ -180,9 +186,6 @@ class RegistroVeiculoController extends Controller
 
     public function limparComSaida()
     {
-        $deletados = RegistroVeiculo::whereNotNull('horario_saida')->delete();
-
-        return redirect()->route('registro_veiculos.index')
-            ->with('success', "$deletados registro(s) com saída foram removidos.");
+        return redirect()->route('registro_veiculos.index', ['filtro' => 'sem_saida']);
     }
 }

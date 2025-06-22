@@ -20,7 +20,7 @@
 
         <div class="mb-3">
             <label for="placa" class="form-label">Placa</label>
-            <select name="placa" id="placa" class="form-select" required>
+            <select name="placa" id="placa" class="form-select" required disabled>
                 <option value="">Selecione um veículo</option>
                 @foreach($veiculos as $veiculo)
                     <option value="{{ $veiculo->placa }}" {{ (old('placa', $registro_veiculo->placa) == $veiculo->placa) ? 'selected' : '' }}>
@@ -29,6 +29,8 @@
                 @endforeach
             </select>
         </div>
+
+        <input type="hidden" name="veiculo_id" value="{{ old('veiculo_id', $registro_veiculo->veiculo_id) }}">
 
         <div class="mb-3">
             <label for="marca" class="form-label">Marca</label>
@@ -53,6 +55,11 @@
                 <option value="PARTICULAR" {{ (old('tipo', $registro_veiculo->tipo) == 'PARTICULAR') ? 'selected' : '' }}>Particular</option>
                 <option value="MOTO" {{ (old('tipo', $registro_veiculo->tipo) == 'MOTO') ? 'selected' : '' }}>Moto</option>
             </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="quantidade_passageiros" class="form-label">Quantidade de Passageiros</label>
+            <input type="number" name="quantidade_passageiros" id="quantidade_passageiros" class="form-control" min="0" max="10" value="{{ old('quantidade_passageiros', $registro_veiculo->quantidade_passageiros) }}" required>
         </div>
 
         <div class="mb-3">
@@ -91,10 +98,10 @@
 
         <div class="mb-3">
             <label for="usuario_logado_id" class="form-label">Usuário Entrada</label>
-            <select name="usuario_logado_id" id="usuario_logado_id" class="form-select" required>
+            <select name="usuario_entrada_id" id="usuario_logado_id" class="form-select" required>
                 <option value="">Selecione usuário</option>
                 @foreach($usuarios as $usuario)
-                    <option value="{{ $usuario->id }}" {{ (old('usuario_logado_id', $registro_veiculo->usuario_logado_id) == $usuario->id) ? 'selected' : '' }}>
+                    <option value="{{ $usuario->id }}" {{ (old('usuario_entrada_id', $registro_veiculo->usuario_entrada_id) == $usuario->id) ? 'selected' : '' }}>
                         {{ $usuario->nome }}
                     </option>
                 @endforeach
@@ -108,6 +115,18 @@
                 @foreach($usuarios as $usuario)
                     <option value="{{ $usuario->id }}" {{ (old('usuario_saida_id', $registro_veiculo->usuario_saida_id) == $usuario->id) ? 'selected' : '' }}>
                         {{ $usuario->nome }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="estacionamento_id" class="form-label">Estacionamento</label>
+            <select name="estacionamento_id" id="estacionamento_id" class="form-select" required>
+                <option value="">Selecione estacionamento</option>
+                @foreach($estacionamentos as $estacionamento)
+                    <option value="{{ $estacionamento->id }}" {{ (old('estacionamento_id', $registro_veiculo->estacionamento_id) == $estacionamento->id) ? 'selected' : '' }}>
+                        {{ $estacionamento->nome }}
                     </option>
                 @endforeach
             </select>

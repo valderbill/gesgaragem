@@ -20,7 +20,9 @@ class RegistroVeiculo extends Model
         'horario_entrada',
         'horario_saida',
         'usuario_saida_id',
-        'estacionamento_id', // <-- novo campo incluído
+        'usuario_entrada_id', // Corrigido
+        'estacionamento_id',
+        'quantidade_passageiros', // ✅ Adicionado aqui
     ];
 
     public function veiculo()
@@ -41,6 +43,11 @@ class RegistroVeiculo extends Model
     public function usuarioSaida()
     {
         return $this->belongsTo(Usuario::class, 'usuario_saida_id');
+    }
+
+    public function usuarioLogado()
+    {
+        return $this->belongsTo(Usuario::class, 'usuario_entrada_id');
     }
 
     public function estacionamento()

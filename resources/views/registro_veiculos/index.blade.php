@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('styles')
-    {{-- Estilos adicionais desta view (se necessário futuramente) --}}
+   <link rel="stylesheet" href="{{ asset('css/digital.css') }}">
 @endsection
 
 @section('content')
@@ -14,22 +14,25 @@
     <div class="mb-3 d-flex justify-content-between">
         <a href="{{ route('registro_veiculos.create') }}" class="btn btn-primary">Novo Registro</a>
 
-        <form action="{{ route('registro_veiculos.limpar_com_saida') }}" method="POST" onsubmit="return confirm('Deseja realmente excluir todos os registros que já possuem saída registrada?')">
-            @csrf
-            <button type="submit" class="btn btn-danger">Limpar Registros com Saída</button>
-        </form>
+        <a href="{{ route('registro_veiculos.index', ['filtro' => 'sem_saida']) }}" title="Ocultar registros com saída">
+            <i class="bi bi-x-circle"></i>
+        </a>
     </div>
 
     {{-- Painel de Contadores Digitais --}}
     <div class="mb-4">
         <div class="row text-center justify-content-center">
             @foreach (['OFICIAL', 'PARTICULAR', 'MOTO'] as $tipo)
-                <div class="col-md-3 col-sm-6 mb-3">
-                    <div class="border rounded p-3 shadow-sm">
-                        <div class="digital-counter" id="total-{{ $tipo }}">0</div>
-                        <div class="mt-2">Total {{ ucfirst(strtolower($tipo)) }}</div>
-                        <div class="digital-counter mt-3" id="disponiveis-{{ $tipo }}">0</div>
-                        <div>Disponíveis</div>
+                <div class="col-md-3 col-sm-6 mb-3 d-flex justify-content-center">
+                    <div class="card-quantidade">
+                        <div>
+                            <div class="digital-counter" id="total-{{ $tipo }}">0</div>
+                            <div>Total {{ ucfirst(strtolower($tipo)) }}</div>
+                        </div>
+                        <div>
+                            <div class="digital-counter" id="disponiveis-{{ $tipo }}">0</div>
+                            <div>Disponíveis</div>
+                        </div>
                     </div>
                 </div>
             @endforeach
@@ -52,6 +55,7 @@
                 <th>Tipo</th>
                 <th>Motorista Entrada</th>
                 <th>Motorista Saída</th>
+                <th>Passageiros</th> {{-- NOVO --}}
                 <th>Horário Entrada</th>
                 <th>Horário Saída</th>
                 <th>Usuário Entrada</th>
@@ -68,7 +72,6 @@
                 <td>{{ $registro->cor }}</td>
                 <td>{{ $registro->tipo }}</td>
                 <td>{{ $registro->motoristaEntrada->nome ?? 'N/A' }}</td>
-
                 <td>
                     @if (!$registro->horario_saida)
                         <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
@@ -83,20 +86,11 @@
                         {{ $registro->motoristaSaida->nome ?? 'N/A' }}
                     @endif
                 </td>
-
-                <td>
-                    {{ $registro->horario_entrada 
-                        ? Carbon::parse($registro->horario_entrada)->format('d/m/Y H:i:s') 
-                        : 'N/A' }}
-                </td>
-                <td>
-                    {{ $registro->horario_saida 
-                        ? Carbon::parse($registro->horario_saida)->format('d/m/Y H:i:s') 
-                        : 'N/A' }}
-                </td>
+                <td>{{ $registro->quantidade_passageiros ?? 0 }}</td> {{-- NOVO --}}
+                <td>{{ $registro->horario_entrada ? Carbon::parse($registro->horario_entrada)->format('d/m/Y H:i:s') : 'N/A' }}</td>
+                <td>{{ $registro->horario_saida ? Carbon::parse($registro->horario_saida)->format('d/m/Y H:i:s') : 'N/A' }}</td>
                 <td>{{ $registro->usuarioLogado->nome ?? 'N/A' }}</td>
                 <td>{{ $registro->usuarioSaida->nome ?? 'N/A' }}</td>
-
                 <td>
                     @if (!$registro->horario_saida)
                             <button type="submit" class="btn btn-success btn-sm mt-1"

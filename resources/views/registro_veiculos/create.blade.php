@@ -78,6 +78,15 @@
                     @endforeach
                 </select>
             </div>
+
+            <div class="col-md-2 mb-3">
+                <label for="quantidade_passageiros" class="form-label">Passageiros</label>
+                <select name="quantidade_passageiros" id="quantidade_passageiros" class="form-select" required>
+                    @for($i = 0; $i <= 10; $i++)
+                        <option value="{{ $i }}" {{ old('quantidade_passageiros', 0) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
         </div>
 
         <div class="d-flex justify-content-end gap-2">
