@@ -36,9 +36,11 @@ require __DIR__ . '/auth.php';
 
 // Redirecionamento por perfil
 Route::get('/redirect', function () {
-    $perfil = Auth::user()->perfil;
+    $usuario = Auth::user();
 
-    return match ($perfil) {
+    $perfilNome = optional($usuario->perfil)->nome;
+
+    return match ($perfilNome) {
         'administrador'   => redirect()->route('admin.dashboard'),
         'vigilante'       => redirect()->route('vigilante.dashboard'),
         'recepcionista'   => redirect()->route('recepcionista.dashboard'),
@@ -74,6 +76,11 @@ Route::resource('veiculos', VeiculoController::class); // essa linha está depoi
 // Route::resource('vagas', VagaController::class);
 Route::resource('registro_veiculos', RegistroVeiculoController::class);
 Route::resource('estacionamentos', EstacionamentoController::class);
+
+// ✅ Protegendo as rotas de ocorrências com auth
+Route::middleware(['auth'])->group(function () {
+    Route::resource('ocorrencias', OcorrenciaController::class);
+});
 
 // Recursos de perfil e permissões
 Route::resource('perfis', PerfilController::class)->parameters(['perfis' => 'perfil']);

@@ -26,7 +26,7 @@ class UsuarioController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255',
             'matricula' => 'required|string|max:100|unique:usuarios,matricula',
-            'senha' => 'required|string|min:6',
+            'password' => 'required|string|min:6',
             'perfil_id' => 'required|exists:perfis,id',
             'ativo' => 'required|boolean',
         ]);
@@ -34,7 +34,7 @@ class UsuarioController extends Controller
         Usuario::create([
             'nome' => $request->nome,
             'matricula' => $request->matricula,
-            'senha' => Hash::make($request->senha),
+            'password' => $request->password, // Aqui só passe o password, o mutator do model já faz o hash
             'perfil_id' => $request->perfil_id,
             'ativo' => $request->ativo,
         ]);
@@ -67,9 +67,9 @@ class UsuarioController extends Controller
         $usuario->perfil_id = $request->perfil_id;
         $usuario->ativo = $request->ativo;
 
-        if ($request->filled('senha')) {
-            $request->validate(['senha' => 'string|min:6']);
-            $usuario->senha = Hash::make($request->senha);
+        if ($request->filled('password')) {
+            $request->validate(['password' => 'string|min:6']);
+            $usuario->password = $request->password; // mutator do model vai aplicar bcrypt
         }
 
         $usuario->save();
@@ -77,10 +77,6 @@ class UsuarioController extends Controller
         return redirect()->route('usuarios.index')->with('success', 'Usuário atualizado com sucesso.');
     }
 
-    /**
-     * Altera o status (ativo/inativo) do usuário.
-     * Rota: PATCH usuarios/{usuario}/alternar-status
-     */
     public function alternarStatus(Request $request, Usuario $usuario)
     {
         $request->validate(['ativo' => 'required|boolean']);
@@ -93,16 +89,12 @@ class UsuarioController extends Controller
         return redirect()->route('usuarios.index')->with('success', "Usuário {$status} com sucesso.");
     }
 
-    /**
-     * Redefine a senha do usuário para sua matrícula.
-     * Rota: POST usuarios/{usuario}/reset-senha
-     */
     public function resetSenha($id)
     {
         $usuario = Usuario::findOrFail($id);
         $novaSenha = $usuario->matricula;
 
-        $usuario->senha = Hash::make($novaSenha);
+        $usuario->password = $novaSenha; // model aplica bcrypt
         $usuario->save();
 
         return redirect()

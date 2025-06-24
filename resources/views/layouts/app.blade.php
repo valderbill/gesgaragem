@@ -56,7 +56,7 @@
                 <img src="{{ asset('images/foto.png') }}" alt="Logo" class="avatar" />
             </div>
 
-            <!-- À direita: Mensagens + Login / Logout -->
+            <!-- À direita: Mensagens + Autenticação -->
             <div class="d-flex align-items-center gap-4">
                 <!-- Link para mensagens com ícone de sino e contador -->
                 <a href="{{ url('/mensagens') }}" class="position-relative text-decoration-none">
@@ -64,10 +64,17 @@
                     <span class="message-counter" id="messageCount">3</span>
                 </a>
 
-                <!-- Botões de login/logout -->
-                <div>
-                    <button class="btn btn-success btn-sm me-2" id="btnLogin">Login</button>
-                    <button class="btn btn-danger btn-sm" id="btnLogout">Logout</button>
+                <!-- Login / Logout + Nome do usuário -->
+                <div class="d-flex align-items-center gap-2">
+                    @auth
+                        <span class="me-2">Bem-vindo, <strong>{{ Auth::user()->nome ?? Auth::user()->matricula }}</strong></span>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-success btn-sm">Login</a>
+                    @endauth
                 </div>
             </div>
         </div>

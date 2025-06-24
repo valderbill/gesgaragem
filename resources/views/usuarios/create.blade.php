@@ -29,7 +29,7 @@
 
         <div class="mb-3">
             <label for="senha" class="form-label">Senha</label>
-            <input type="password" class="form-control" id="senha" name="senha" required>
+            <input type="password" class="form-control" id="senha" name="password" required>
         </div>
 
         <div class="mb-3">
@@ -42,7 +42,7 @@
                     </option>
                 @endforeach
             </select>
-        </div>
+        </div> 
 
         <div class="form-check mb-3">
             <input class="form-check-input" type="checkbox" value="1" id="ativo" name="ativo" {{ old('ativo', 1) ? 'checked' : '' }}>

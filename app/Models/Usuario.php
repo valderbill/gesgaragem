@@ -15,13 +15,13 @@ class Usuario extends Authenticatable
     protected $fillable = [
         'nome',
         'matricula',
-        'senha',
+        'password',
         'perfil_id',
         'ativo',
     ];
 
     protected $hidden = [
-        'senha',
+        'password',
         'remember_token',
     ];
 
@@ -34,15 +34,15 @@ class Usuario extends Authenticatable
         return $this->belongsTo(Perfil::class);
     }
 
-    // Laravel vai usar a coluna 'senha' para autenticar
+    // Laravel vai usar a coluna 'password' para autenticar
     public function getAuthPassword()
     {
-        return $this->senha;
+        return $this->password;
     }
 
-    // Permite usar 'password' no cadastro, salvando em 'senha'
+    // Permite usar 'password' no cadastro, salvando em 'password'
     public function setPasswordAttribute($value)
     {
-        $this->attributes['senha'] = bcrypt($value);
+        $this->attributes['password'] = bcrypt($value);
     }
 }

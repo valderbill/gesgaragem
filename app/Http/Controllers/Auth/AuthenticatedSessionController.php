@@ -12,7 +12,7 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Exibe o formulário de login.
      */
     public function create(): View
     {
@@ -20,10 +20,11 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Processa a requisição de autenticação.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Aqui já está usando a autenticação do LoginRequest
         $request->authenticate();
 
         $request->session()->regenerate();
@@ -32,14 +33,13 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Destroy an authenticated session.
+     * Faz logout do usuário autenticado.
      */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

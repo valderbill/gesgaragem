@@ -6,22 +6,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ocorrencia extends Model
 {
+    // Define a tabela explicitamente (opcional se seguir convenção)
     protected $table = 'ocorrencias';
 
-    public $timestamps = false; // pois a tabela não tem created_at e updated_at
+    // Sem timestamps padrão (created_at / updated_at)
+    public $timestamps = false;
 
-    protected $fillable = [
-        'placa',
+    // Campos permitidos para preenchimento em massa
+    protected $fillable = [        
         'ocorrencia',
         'horario',
         'usuario_id',
     ];
 
-    public function veiculo()
-    {
-        return $this->belongsTo(Veiculo::class, 'placa', 'placa');
-    }
+    // Cast para facilitar o uso do campo horario com Carbon
+    protected $casts = [
+        'horario' => 'datetime',
+    ];
 
+    /**
+     * Relacionamento com o Usuário
+     */
     public function usuario()
     {
         return $this->belongsTo(Usuario::class, 'usuario_id');
