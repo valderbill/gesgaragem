@@ -2,54 +2,51 @@
 
 @section('content')
 <div class="container">
-    <h1>Editar Ocorrência</h1>
+    <h1>Detalhes da Ocorrência</h1>
 
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+    {{-- Dados da ocorrência inicial --}}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5><strong>Ocorrência Inicial:</strong></h5>
+            <p>{{ $ocorrencia->ocorrencia }}</p>
+
+            <p><strong>Data/Hora:</strong> {{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }}</p>
+            <p><strong>Registrado por:</strong> {{ optional($ocorrencia->usuario)->nome ?? 'Não informado' }}</p>
         </div>
-    @endif
+    </div>
 
-    <form action="{{ route('ocorrencias.update', $ocorrencia->id) }}" method="POST">
-        @csrf
-        @method('PUT')
-
-        <div class="mb-3">
-            <label for="placa" class="form-label">Veículo (Placa)</label>
-            <select name="placa" id="placa" class="form-control" required>
-                <option value="">Selecione a placa</option>
-                @foreach($veiculos as $veiculo)
-                    <option value="{{ $veiculo->placa }}" {{ (old('placa', $ocorrencia->placa) == $veiculo->placa) ? 'selected' : '' }}>
-                        {{ $veiculo->placa }} - {{ $veiculo->modelo }}
-                    </option>
-                @endforeach
-            </select>
+    {{-- Histórico de acompanhamentos --}}
+    <div class="card">
+        <div class="card-header">
+            <h5>Acompanhamentos</h5>
         </div>
-
-        <div class="mb-3">
-            <label for="ocorrencia" class="form-label">Ocorrência</label>
-            <textarea name="ocorrencia" id="ocorrencia" class="form-control" rows="4" required>{{ old('ocorrencia', $ocorrencia->ocorrencia) }}</textarea>
+        <div class="card-body">
+            @if($ocorrencia->acompanhamentos->count())
+                <ul class="list-group">
+                    @foreach($ocorrencia->acompanhamentos as $acompanhamento)
+                        <li class="list-group-item">
+                            <p>{{ $acompanhamento->descricao }}</p>
+                            <small>
+                                <strong>Data/Hora:</strong> {{ \Carbon\Carbon::parse($acompanhamento->horario)->format('d/m/Y H:i') }} |
+                                <strong>Por:</strong> {{ optional($acompanhamento->usuario)->nome ?? 'Não informado' }}
+                            </small>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <p>Não há acompanhamentos registrados.</p>
+            @endif
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label for="horario" class="form-label">Horário</label>
-            <input type="datetime-local" name="horario" id="horario" class="form-control" value="{{ old('horario', date('Y-m-d\TH:i', strtotime($ocorrencia->horario))) }}" required>
-        </div>
-
-        <div class="mb-3">
-            <label for="usuario_id" class="form-label">Usuário</label>
-            <select name="usuario_id" id="usuario_id" class="form-control" required>
-                <option value="">Selecione o usuário</option>
-                @foreach($usuarios as $usuario)
-                    <option value="{{ $usuario->id }}" {{ (old('usuario_id', $ocorrencia->usuario_id) == $usuario->id) ? 'selected' : '' }}>
-                        {{ $usuario->nome }} - {{ $usuario->matricula }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Atualizar</button>
-        <a href="{{ route('ocorrencias.index') }}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    {{-- Botões --}}
+    <div class="mt-3">
+        <a href="{{ route('acompanhamentos.create', $ocorrencia->id) }}" class="btn btn-primary">
+            Adicionar Acompanhamento
+        </a>
+        <a href="{{ route('ocorrencias.index') }}" class="btn btn-secondary">
+            Voltar
+        </a>
+    </div>
 </div>
 @endsection

@@ -2,8 +2,11 @@
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.querySelector('form');
   const inputPlaca = document.getElementById('placa');
+  const inputTipo = document.getElementById('tipo');
+  const acessoGroup = document.getElementById('acesso-container');
+  const acessoSelect = document.getElementById('acesso_id');
 
-  if (!form || !inputPlaca) return;
+  if (!form || !inputPlaca || !inputTipo || !acessoSelect) return;
 
   // Função para validar placa (ABC1234 ou ABC1D23)
   function validarPlaca(placa) {
@@ -29,7 +32,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Validação ao enviar o formulário
+  // Mostrar ou esconder o campo "Acesso Liberado" com base no tipo
+  function atualizarCampoMotorista() {
+    const tipo = inputTipo.value;
+
+    if (tipo === 'OFICIAL') {
+      acessoGroup.style.display = 'block';
+      acessoSelect.disabled = false;
+    } else {
+      acessoGroup.style.display = 'none';
+      acessoSelect.disabled = true;
+      acessoSelect.innerHTML = '<option value="">--</option>'; // Limpa opções se não for oficial
+    }
+  }
+
+  inputTipo.addEventListener('change', atualizarCampoMotorista);
+  atualizarCampoMotorista(); // chamada inicial
+
+  // Buscar motorista automaticamente ao sair do campo de placa
+  inputPlaca.addEventListener('blur', function() {
+    const placa = inputPlaca.value.trim();
+    const tipo = inputTipo.value;
+
+    if (placa && (tipo === 'PARTICULAR' || tipo === 'MOTO')) {
+      fetch(`/api/motorista-por-placa/${placa}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data && data.id) {
+            const option = new Option(`${data.nome} - ${data.matricula}`, data.id, true, true);
+            acessoSelect.innerHTML = '';
+            acessoSelect.appendChild(option);
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao buscar motorista:', error);
+        });
+    }
+  });
+
+  // Validação da placa antes de enviar o formulário
   form.addEventListener('submit', function(e) {
     const placa = inputPlaca.value.trim();
     if (!validarPlaca(placa)) {

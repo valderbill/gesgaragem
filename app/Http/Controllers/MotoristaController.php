@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Motorista;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MotoristaController extends Controller
 {
@@ -26,21 +27,21 @@ class MotoristaController extends Controller
             'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        // Salva a imagem na pasta storage/app/public/motoristas
         $fotoPath = $request->file('foto')->store('motoristas', 'public');
 
+        // Cria novo motorista
         Motorista::create([
             'nome' => $request->nome,
             'matricula' => $request->matricula,
-            'foto' => $fotoPath,
+            'foto' => $fotoPath, // Ex: motoristas/nomefoto.jpg
         ]);
 
         return redirect()->route('motoristas.index')->with('success', 'Motorista cadastrado com sucesso.');
     }
 
-    // Método show para visualizar um motorista específico
     public function show(Motorista $motorista)
     {
-        // Retorna a view 'motorista.show' passando o motorista
         return view('motorista.show', compact('motorista'));
     }
 
@@ -63,6 +64,12 @@ class MotoristaController extends Controller
         ];
 
         if ($request->hasFile('foto')) {
+            // Deleta a imagem anterior (opcional)
+            if ($motorista->foto && Storage::disk('public')->exists($motorista->foto)) {
+                Storage::disk('public')->delete($motorista->foto);
+            }
+
+            // Salva nova imagem
             $fotoPath = $request->file('foto')->store('motoristas', 'public');
             $data['foto'] = $fotoPath;
         }
@@ -74,6 +81,11 @@ class MotoristaController extends Controller
 
     public function destroy(Motorista $motorista)
     {
+        // Deleta imagem vinculada (opcional, mas recomendado)
+        if ($motorista->foto && Storage::disk('public')->exists($motorista->foto)) {
+            Storage::disk('public')->delete($motorista->foto);
+        }
+
         $motorista->delete();
         return redirect()->route('motoristas.index')->with('success', 'Motorista excluído com sucesso.');
     }

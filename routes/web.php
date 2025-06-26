@@ -7,9 +7,9 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\VeiculoController;
 use App\Http\Controllers\MotoristaController;
 use App\Http\Controllers\AcessoLiberadoController;
-// use App\Http\Controllers\VagaController;
 use App\Http\Controllers\RegistroVeiculoController;
 use App\Http\Controllers\OcorrenciaController;
+use App\Http\Controllers\AcompanhamentoController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PermissaoController;
 use App\Http\Controllers\PainelController;
@@ -37,7 +37,6 @@ require __DIR__ . '/auth.php';
 // Redirecionamento por perfil
 Route::get('/redirect', function () {
     $usuario = Auth::user();
-
     $perfilNome = optional($usuario->perfil)->nome;
 
     return match ($perfilNome) {
@@ -59,46 +58,71 @@ Route::middleware(['auth'])->group(function () {
 // ---------------------
 // Buscas e autocomplete
 // ---------------------
-Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar'); // ✅ deve vir ANTES
+Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar'); 
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
 
+// ✅ Adicionada: Buscar motorista anterior por placa
+Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
+
 // ---------------------------
-// Seleção de Estacionamento ✅
+// Seleção de Estacionamento
 // ---------------------------
 Route::get('/selecionar-estacionamento', [EstacionamentoController::class, 'selecionar'])->name('selecionar.estacionamento');
 Route::post('/definir-estacionamento', [EstacionamentoController::class, 'definir'])->name('definir.estacionamento');
 
+// ---------------------------
 // Recursos principais
+// ---------------------------
 Route::resource('usuarios', UsuarioController::class);
 Route::resource('motoristas', MotoristaController::class);
 Route::resource('acessos_liberados', AcessoLiberadoController::class);
-Route::resource('veiculos', VeiculoController::class); // essa linha está depois de "buscar"
-// Route::resource('vagas', VagaController::class);
+Route::resource('veiculos', VeiculoController::class); 
 Route::resource('registro_veiculos', RegistroVeiculoController::class);
 Route::resource('estacionamentos', EstacionamentoController::class);
 
-// ✅ Protegendo as rotas de ocorrências com auth
+// ✅ Protegendo ocorrências e acompanhamentos com auth
 Route::middleware(['auth'])->group(function () {
+    // Ocorrências
     Route::resource('ocorrencias', OcorrenciaController::class);
+
+    // Acompanhamentos (vinculados a ocorrências)
+    Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])
+        ->name('acompanhamentos.create');
+
+    Route::post('acompanhamentos/{ocorrencia}', [AcompanhamentoController::class, 'store'])
+        ->name('acompanhamentos.store');
 });
 
-// Recursos de perfil e permissões
+// ---------------------------
+// Perfis e Permissões
+// ---------------------------
 Route::resource('perfis', PerfilController::class)->parameters(['perfis' => 'perfil']);
 Route::resource('permissoes', PermissaoController::class)->parameters(['permissoes' => 'permissao']);
 
+// ---------------------------
 // Ações extras
-Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])->name('usuarios.alternar-status');
-Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
-Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])->name('registro_veiculos.registrar_saida');
+// ---------------------------
+Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])
+    ->name('usuarios.alternar-status');
 
-// ✅ Rota para limpar registros com saída
+Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])
+    ->name('usuarios.resetSenha');
+
+Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])
+    ->name('registro_veiculos.registrar_saida');
+
+// ✅ Limpar registros com saída
 Route::post('/registro-veiculos/limpar-com-saida', [RegistroVeiculoController::class, 'limparComSaida'])
     ->name('registro_veiculos.limpar_com_saida');
 
+// ---------------------------
 // Painel de dados
+// ---------------------------
 Route::get('/painel/dados', [PainelController::class, 'dados'])->name('painel.dados');
 
+// ---------------------------
 // Rota de teste
+// ---------------------------
 Route::get('/teste', function () {
     return 'Você está no projeto gesgaragem!';
 });

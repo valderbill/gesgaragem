@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Veiculo extends Model
 {
-    public $timestamps = false; // ← isso desativa os campos created_at e updated_at
+    public $timestamps = false;
 
     protected $fillable = [
         'placa',
@@ -13,11 +14,11 @@ class Veiculo extends Model
         'cor',
         'tipo',
         'marca',
-        'acesso_liberado_id',
+        'acesso_id', // corrigido para bater com o controller e formulário
     ];
 
     public function acessoLiberado()
     {
-        return $this->belongsTo(AcessoLiberado::class, 'acesso_liberado_id');
+        return $this->belongsTo(AcessoLiberado::class, 'acesso_id');
     }
 }

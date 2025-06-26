@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1>Lista de Motoristas Oficiais</h1>
+    <h1>Lista de Motoristas</h1>
 
     <a href="{{ route('motoristas.create') }}" class="btn btn-success mb-3">Cadastrar Novo Motorista</a>
 

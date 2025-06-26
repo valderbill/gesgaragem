@@ -33,7 +33,7 @@
                 <td>{{ $ocorrencia->id }}</td>
                 <td>{{ Str::limit($ocorrencia->ocorrencia, 50) }}</td>
                 <td>{{ $ocorrencia->horario }}</td>
-                <td>{{ $ocorrencia->usuario->name ?? 'Não informado' }}</td>
+                <td>{{ optional($ocorrencia->usuario)->name ?? 'Não informado' }}</td>
                 <td>
                     <a href="{{ route('ocorrencias.edit', $ocorrencia->id) }}" class="btn btn-success btn-sm">Incluir</a>
                 </td>

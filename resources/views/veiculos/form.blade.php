@@ -32,7 +32,8 @@
            value="{{ old('marca') }}" required>
 </div>
 
-<div class="mb-3">
+{{-- Campo de motorista, exibido apenas se tipo for OFICIAL --}}
+<div class="mb-3" id="acesso-container" style="display: none;">
     <label for="acesso_id" class="form-label">Acesso Liberado</label>
     <select name="acesso_id" id="acesso_id" class="form-select">
         <option value="">Selecione...</option>

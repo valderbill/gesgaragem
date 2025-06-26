@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Veiculo;
 use App\Models\AcessoLiberado;
+use App\Models\RegistroVeiculo;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -179,5 +180,27 @@ class VeiculoController extends Controller
         }
 
         return response()->json(['success' => false, 'message' => 'Veículo não encontrado.']);
+    }
+
+    // NOVO MÉTODO - Busca motorista anterior por placa
+    public function motoristaPorPlaca($placa)
+    {
+        $placa = strtoupper($placa);
+
+        $registro = RegistroVeiculo::where('placa', $placa)
+            ->whereNotNull('motorista_entrada_id')
+            ->latest('id')
+            ->with('motoristaEntrada') // relacionamento
+            ->first();
+
+        if ($registro && $registro->motoristaEntrada) {
+            return response()->json([
+                'id' => $registro->motoristaEntrada->id,
+                'nome' => $registro->motoristaEntrada->nome,
+                'matricula' => $registro->motoristaEntrada->matricula,
+            ]);
+        }
+
+        return response()->json(null, 404);
     }
 }
