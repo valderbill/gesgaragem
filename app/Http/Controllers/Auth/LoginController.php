@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Models\Usuario; // Certifique-se de importar seu model de usuário
 
 class LoginController extends Controller
 {
@@ -28,17 +29,33 @@ class LoginController extends Controller
             'senha' => ['required', 'string'],
         ]);
 
+        // Busca o usuário pelo campo matrícula
+        $user = Usuario::where('matricula', $credentials['matricula'])->first();
+
+        // Verifica se o usuário existe
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'matricula' => __('Matrícula ou senha inválida.'),
+            ]);
+        }
+
+        // Verifica se o usuário está ativo
+        if (!$user->ativo) {
+            throw ValidationException::withMessages([
+                'matricula' => __('Usuário inativo. Procure a administração.'),
+            ]);
+        }
+
         // Tenta autenticar com os campos corretos
         if (Auth::attempt([
             'matricula' => $credentials['matricula'],
             'password' => $credentials['senha']
         ], $request->boolean('remember'))) {
             $request->session()->regenerate();
-
             return redirect()->intended('/dashboard'); // Altere para sua rota de destino
         }
 
-        // Falha na autenticação
+        // Senha incorreta
         throw ValidationException::withMessages([
             'matricula' => __('Matrícula ou senha inválida.'),
         ]);

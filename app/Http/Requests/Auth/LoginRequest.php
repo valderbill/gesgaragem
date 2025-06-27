@@ -5,7 +5,6 @@ namespace App\Http\Requests\Auth;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -32,7 +31,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Realiza a autenticação com base na matrícula e senha.
+     * Realiza a autenticação com base na matrícula, senha e status de ativo.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -42,11 +41,14 @@ class LoginRequest extends FormRequest
 
         $credentials = $this->only('matricula', 'password');
 
+        // Adiciona verificação de usuário ativo
+        $credentials['ativo'] = true;
+
         if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'matricula' => trans('auth.failed'), // ou: 'As credenciais estão incorretas.'
+                'matricula' => 'Credenciais inválidas ou usuário inativo.',
             ]);
         }
 

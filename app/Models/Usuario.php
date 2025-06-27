@@ -45,4 +45,12 @@ class Usuario extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($value);
     }
+
+    // ✅ Adicionado: mensagens não lidas usando tabela pivot
+    public function mensagensNaoLidas()
+{
+    return $this->belongsToMany(Mensagem::class, 'mensagem_destinatarios', 'destinatario_id', 'mensagem_id')
+                ->wherePivot('lida', false);
+}
+
 }

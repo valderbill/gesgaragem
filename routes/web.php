@@ -14,6 +14,8 @@ use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PermissaoController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\EstacionamentoController;
+// ✅ Adicionado:
+use App\Http\Controllers\MensagemController;
 
 // Página pública
 Route::get('/', function () {
@@ -126,3 +128,8 @@ Route::get('/painel/dados', [PainelController::class, 'dados'])->name('painel.da
 Route::get('/teste', function () {
     return 'Você está no projeto gesgaragem!';
 });
+
+// ✅ ---------------------------
+// Rotas de Mensagens
+// ---------------------------
+Route::resource('mensagens', MensagemController::class)->middleware('auth');

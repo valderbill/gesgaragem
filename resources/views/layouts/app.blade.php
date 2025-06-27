@@ -48,14 +48,11 @@
     <!-- Navbar principal -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
         <div class="container-fluid d-flex justify-content-between align-items-center">
-
-            <!-- Logo -->
             <a class="navbar-brand d-flex align-items-center" href="{{ url('/selecionar-estacionamento') }}">
                 <img src="{{ asset('images/foto.png') }}" alt="Logo" class="avatar me-2">
                 <strong>Sistema Estacionamento</strong>
             </a>
 
-            <!-- Menu suspenso por perfil -->
             @auth
             <div class="collapse navbar-collapse" id="navbarNavDropdown">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -63,54 +60,56 @@
                         $perfil = Auth::user()?->perfil?->nome;
                     @endphp
 
-                   @if($perfil === 'administrador')
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            Administração
-        </a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('usuarios.index') }}">Usuários</a></li>
-            {{--<li><a class="dropdown-item" href="{{ route('perfis.index') }}">Perfis</a></li>--}}
-            {{--<li><a class="dropdown-item" href="{{ route('permissoes.index') }}">Permissões</a></li>--}}
-            <li><a class="dropdown-item" href="{{ route('motoristas.index') }}">Motoristas</a></li>
-            <li><a class="dropdown-item" href="{{ route('veiculos.index') }}">Veículos</a></li>
-            <li><a class="dropdown-item" href="{{ route('registro_veiculos.index') }}">Registro de Veículos</a></li>
-            <li><a class="dropdown-item" href="{{ route('acessos_liberados.index') }}">Acessos Liberados</a></li>
-            <li><a class="dropdown-item" href="{{ route('estacionamentos.index') }}">Estacionamentos</a></li>
-            <li><a class="dropdown-item" href="{{ route('ocorrencias.index') }}">Ocorrências</a></li>
-            {{-- <li><a class="dropdown-item" href="{{ route('selecionar.estacionamento') }}">Selecionar Estacionamento</a></li> --}}
-
-        </ul>
-    </li>
-
-        @elseif($perfil === 'vigilante' || $perfil === 'recepcionista')    
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            Vigilante/Recepção
-        </a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('registro_veiculos.index') }}">Registro de Veículos</a></li>
-            <li><a class="dropdown-item" href="{{ route('motoristas.index') }}">Motoristas</a></li>
-            <li><a class="dropdown-item" href="{{ route('veiculos.index') }}">Veículos</a></li>
-            <li><a class="dropdown-item" href="{{ route('ocorrencias.index') }}">Minhas Ocorrências</a></li>
-        </ul>
-    </li>
-@endif
-
+                    @if($perfil === 'administrador')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Administração
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('usuarios.index') }}">Usuários</a></li>
+                            <li><a class="dropdown-item" href="{{ route('motoristas.index') }}">Motoristas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('veiculos.index') }}">Veículos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('registro_veiculos.index') }}">Registro de Veículos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('acessos_liberados.index') }}">Acessos Liberados</a></li>
+                            <li><a class="dropdown-item" href="{{ route('estacionamentos.index') }}">Estacionamentos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('ocorrencias.index') }}">Ocorrências</a></li>
+                        </ul>
+                    </li>
+                    @elseif($perfil === 'vigilante' || $perfil === 'recepcionista')
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Vigilante/Recepção
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('registro_veiculos.index') }}">Registro de Veículos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('motoristas.index') }}">Motoristas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('veiculos.index') }}">Veículos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('ocorrencias.index') }}">Minhas Ocorrências</a></li>
+                        </ul>
+                    </li>
+                    @endif
                 </ul>
             </div>
-
-
             @endauth
 
             <!-- Direita: Notificações e usuário -->
             <div class="d-flex align-items-center gap-4">
-                <a href="{{ url('/mensagens') }}" class="position-relative text-decoration-none">
-                    <i class="bi bi-bell-fill message-icon"></i>
-                    <span class="message-counter" id="messageCount">3</span>
-                </a>
-
                 @auth
+                    @php
+                        $mensagensNaoLidas = Auth::user()->mensagensNaoLidas()->count();
+                    @endphp
+
+                    <a href="{{ url('/mensagens') }}" class="position-relative text-decoration-none">
+                        <i class="bi bi-bell-fill message-icon"></i>
+                        @if($mensagensNaoLidas > 0)
+                            <span class="message-counter" id="messageCount">{{ $mensagensNaoLidas }}</span>
+                        @endif
+                    </a>
+
+                    <a href="{{ url('/dashboard') }}" class="text-decoration-none" title="Painel de Controle">
+                        <i class="bi bi-record-circle"></i>
+                    </a>
+
                     <span class="me-2">Bem-vindo, <strong>{{ Auth::user()->nome ?? Auth::user()->matricula }}</strong></span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -123,20 +122,31 @@
         </div>
     </nav>
 
-    <!-- Estacionamento atual -->
+    <!-- Estacionamento atual + data -->
     @php
-        $estacionamentoId = session('estacionamento_id');
-        $estacionamentoNome = is_numeric($estacionamentoId)
-            ? \App\Models\Estacionamento::find($estacionamentoId)?->nome
-            : null;
+        use Carbon\Carbon;
+
+        Carbon::setLocale('pt_BR');
+        setlocale(LC_TIME, 'pt_BR.UTF-8');
+
+        $data = Carbon::now();
+        $dataFormatada = $data->format('d/m/Y');
+        $diaSemana = $data->translatedFormat('l');
     @endphp
 
-    @if($estacionamentoNome)
+    @if(session('estacionamento_id'))
+        @php
+            $estacionamento = \App\Models\Estacionamento::find(session('estacionamento_id'));
+        @endphp
+        @if($estacionamento)
         <div class="container mb-3">
             <div class="alert alert-info text-center">
-                Estacionamento atual: <strong>{{ $estacionamentoNome }}</strong>
+                <div>Estacionamento atual: <strong>{{ $estacionamento->nome }}</strong></div>
+                <div>{{ $dataFormatada }}</div>
+                <div class="text-capitalize">{{ $diaSemana }}</div>
             </div>
         </div>
+        @endif
     @endif
 
     <!-- Conteúdo das páginas -->
@@ -146,7 +156,7 @@
 
     @yield('scripts')
 
-    <!-- Bootstrap JS para dropdown funcionar -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
