@@ -14,7 +14,6 @@ use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PermissaoController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\EstacionamentoController;
-// ✅ Adicionado:
 use App\Http\Controllers\MensagemController;
 
 // Página pública
@@ -63,8 +62,11 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar'); 
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
 
-// ✅ Adicionada: Buscar motorista anterior por placa
+// ✅ Buscar motorista anterior por placa
 Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
+
+// ✅ Rota para buscar acessos liberados (autocomplete nome/matrícula)
+Route::get('/acessos/buscar', [AcessoLiberadoController::class, 'buscar'])->name('acessos.buscar');
 
 // ---------------------------
 // Seleção de Estacionamento
@@ -84,15 +86,9 @@ Route::resource('estacionamentos', EstacionamentoController::class);
 
 // ✅ Protegendo ocorrências e acompanhamentos com auth
 Route::middleware(['auth'])->group(function () {
-    // Ocorrências
     Route::resource('ocorrencias', OcorrenciaController::class);
-
-    // Acompanhamentos (vinculados a ocorrências)
-    Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])
-        ->name('acompanhamentos.create');
-
-    Route::post('acompanhamentos/{ocorrencia}', [AcompanhamentoController::class, 'store'])
-        ->name('acompanhamentos.store');
+    Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])->name('acompanhamentos.create');
+    Route::post('acompanhamentos/{ocorrencia}', [AcompanhamentoController::class, 'store'])->name('acompanhamentos.store');
 });
 
 // ---------------------------
@@ -104,18 +100,12 @@ Route::resource('permissoes', PermissaoController::class)->parameters(['permisso
 // ---------------------------
 // Ações extras
 // ---------------------------
-Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])
-    ->name('usuarios.alternar-status');
-
-Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])
-    ->name('usuarios.resetSenha');
-
-Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])
-    ->name('registro_veiculos.registrar_saida');
+Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])->name('usuarios.alternar-status');
+Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
+Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])->name('registro_veiculos.registrar_saida');
 
 // ✅ Limpar registros com saída
-Route::post('/registro-veiculos/limpar-com-saida', [RegistroVeiculoController::class, 'limparComSaida'])
-    ->name('registro_veiculos.limpar_com_saida');
+Route::post('/registro-veiculos/limpar-com-saida', [RegistroVeiculoController::class, 'limparComSaida'])->name('registro_veiculos.limpar_com_saida');
 
 // ---------------------------
 // Painel de dados

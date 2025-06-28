@@ -21,7 +21,6 @@
         @csrf
 
         <div class="row">
-            <!-- Campo Estacionamento (fixo, vindo da sessão) -->
             @php
                 $estacionamentoSelecionado = $estacionamentos->firstWhere('id', session('estacionamento_id'));
             @endphp
@@ -43,17 +42,17 @@
 
             <div class="col-md-2 mb-3">
                 <label for="marca" class="form-label">Marca</label>
-                <input type="text" name="marca" id="marca" class="form-control" value="{{ old('marca') }}" required maxlength="50" autocomplete="off" readonly>
+                <input type="text" name="marca" id="marca" class="form-control" value="{{ old('marca') }}" required maxlength="50" readonly>
             </div>
 
             <div class="col-md-2 mb-3">
                 <label for="modelo" class="form-label">Modelo</label>
-                <input type="text" name="modelo" id="modelo" class="form-control" value="{{ old('modelo') }}" required maxlength="50" autocomplete="off" readonly>
+                <input type="text" name="modelo" id="modelo" class="form-control" value="{{ old('modelo') }}" required maxlength="50" readonly>
             </div>
 
             <div class="col-md-2 mb-3">
                 <label for="cor" class="form-label">Cor</label>
-                <input type="text" name="cor" id="cor" class="form-control" value="{{ old('cor') }}" required maxlength="20" autocomplete="off" readonly>
+                <input type="text" name="cor" id="cor" class="form-control" value="{{ old('cor') }}" required maxlength="20" readonly>
             </div>
 
             <div class="col-md-2 mb-3">
@@ -101,13 +100,25 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-$(document).ready(function() {
+$(document).ready(function () {
     function preencherCampos(dados) {
         $('#marca').val(dados.marca || '');
         $('#modelo').val(dados.modelo || '');
         $('#cor').val(dados.cor || '');
         $('#tipo').val(dados.tipo || '');
         $('#tipo-hidden').val(dados.tipo || '');
+
+        const tipo = dados.tipo || '';
+        const motoristaSelect = $('#motorista_entrada_id');
+
+        if ((tipo === 'PARTICULAR' || tipo === 'MOTO') && dados.motorista_entrada_id) {
+            // Garante que o motorista correspondente esteja presente e selecionado
+            const option = new Option(dados.motorista_nome, dados.motorista_entrada_id, true, true);
+            motoristaSelect.empty().append(option).trigger('change');
+            motoristaSelect.prop('disabled', true);
+        } else {
+            motoristaSelect.prop('disabled', false);
+        }
     }
 
     $('#placa').select2({
@@ -123,17 +134,25 @@ $(document).ready(function() {
             processResults: function (data) {
                 return {
                     results: data.results.map(item => ({
-                        id: item.id ?? item.text ?? item.placa,
-                        text: item.text ?? item.placa,
+                        id: item.id,
+                        text: item.placa,
+                        placa: item.placa,
                         marca: item.marca,
                         modelo: item.modelo,
                         cor: item.cor,
-                        tipo: item.tipo
+                        tipo: item.tipo,
+                        motorista_entrada_id: item.motorista_entrada_id,
+                        motorista_nome: item.motorista_nome
                     }))
                 };
             },
             cache: true
         }
+    });
+
+    $('#motorista_entrada_id').select2({
+        placeholder: 'Digite o nome do motorista...',
+        allowClear: true
     });
 
     $('#placa').on('select2:select', function (e) {
@@ -142,20 +161,18 @@ $(document).ready(function() {
     });
 
     @if(old('placa'))
-        var placaSelecionada = $('#placa').select2('data')[0];
-        if (!placaSelecionada) {
-            $.ajax({
-                url: '{{ route("veiculos.buscar") }}',
-                data: { term: '{{ old("placa") }}' },
-                success: function(response) {
-                    if (response.results && response.results.length > 0) {
-                        preencherCampos(response.results[0]);
-                    }
+        $.ajax({
+            url: '{{ route("veiculos.buscar") }}',
+            data: { term: '{{ old("placa") }}' },
+            success: function(response) {
+                if (response.results && response.results.length > 0) {
+                    const dados = response.results[0];
+                    const newOption = new Option(dados.placa, dados.id, true, true);
+                    $('#placa').append(newOption).trigger('change');
+                    preencherCampos(dados);
                 }
-            });
-        } else {
-            preencherCampos(placaSelecionada);
-        }
+            }
+        });
     @endif
 });
 </script>

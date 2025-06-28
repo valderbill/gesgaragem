@@ -9,7 +9,7 @@ class RegistroVeiculo extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'veiculo_id', 
+        'veiculo_id',
         'placa',
         'marca',
         'modelo',
@@ -20,9 +20,9 @@ class RegistroVeiculo extends Model
         'horario_entrada',
         'horario_saida',
         'usuario_saida_id',
-        'usuario_entrada_id', // Corrigido
+        'usuario_entrada_id',
         'estacionamento_id',
-        'quantidade_passageiros', // ✅ Adicionado aqui
+        'quantidade_passageiros',
     ];
 
     public function veiculo()
@@ -40,14 +40,14 @@ class RegistroVeiculo extends Model
         return $this->belongsTo(Motorista::class, 'motorista_saida_id');
     }
 
+    public function usuarioEntrada()
+    {
+        return $this->belongsTo(Usuario::class, 'usuario_entrada_id');
+    }
+
     public function usuarioSaida()
     {
         return $this->belongsTo(Usuario::class, 'usuario_saida_id');
-    }
-
-    public function usuarioLogado()
-    {
-        return $this->belongsTo(Usuario::class, 'usuario_entrada_id');
     }
 
     public function estacionamento()

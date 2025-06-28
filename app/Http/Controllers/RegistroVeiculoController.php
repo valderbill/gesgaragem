@@ -7,6 +7,7 @@ use App\Models\Veiculo;
 use App\Models\Motorista;
 use App\Models\Usuario;
 use App\Models\Estacionamento;
+use App\Models\AcessoLiberado;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,10 +19,10 @@ class RegistroVeiculoController extends Controller
         $filtro = $request->input('filtro');
 
         $registros = RegistroVeiculo::with([
-            'veiculo',
+            'veiculo.acessoLiberado.motorista',
             'motoristaEntrada',
             'motoristaSaida',
-            'usuarioLogado',
+            'usuarioEntrada',
             'usuarioSaida',
             'estacionamento'
         ])
@@ -53,12 +54,13 @@ class RegistroVeiculoController extends Controller
             'modelo' => 'required|string|max:50',
             'cor' => 'required|string|max:20',
             'tipo' => 'required|in:OFICIAL,PARTICULAR,MOTO',
-            'motorista_entrada_id' => 'required|exists:motoristas_oficiais,id',
+            'motorista_entrada_id' => 'nullable|exists:motoristas_oficiais,id',
             'motorista_saida_id' => 'nullable|exists:motoristas_oficiais,id',
             'horario_saida' => 'nullable|date',
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
             'quantidade_passageiros' => 'required|integer|min:0|max:10',
+            'acesso_id' => 'nullable|exists:acessos_liberados,id', // ✅ Adicionado
         ]);
 
         $registroAberto = RegistroVeiculo::where('veiculo_id', $request->veiculo_id)
@@ -71,27 +73,42 @@ class RegistroVeiculoController extends Controller
                 ->withErrors(['veiculo_id' => 'Este veículo já possui uma entrada aberta. Registre a saída antes de uma nova entrada.']);
         }
 
-        $veiculo = Veiculo::findOrFail($request->veiculo_id);
+        $veiculo = Veiculo::with('acessoLiberado.motorista')->findOrFail($request->veiculo_id);
 
-        RegistroVeiculo::create(array_merge(
-            $request->only([
-                'veiculo_id',
-                'marca',
-                'modelo',
-                'cor',
-                'tipo',
-                'motorista_entrada_id',
-                'motorista_saida_id',
-                'horario_saida',
-                'usuario_saida_id',
-                'estacionamento_id',
-                'quantidade_passageiros',
-            ]),
-            [
-                'placa' => $veiculo->placa,
-                'horario_entrada' => now()
-            ]
-        ));
+        // Definir motorista de entrada baseado no tipo
+        if ($request->tipo === 'OFICIAL') {
+            $motoristaEntradaId = $request->motorista_entrada_id;
+        } else {
+            if ($request->filled('acesso_id')) {
+                $acesso = AcessoLiberado::find($request->acesso_id);
+                $motoristaEntradaId = optional($acesso)->motorista_id;
+            } else {
+                $motoristaEntradaId = optional($veiculo->acessoLiberado)->motorista_id;
+            }
+        }
+
+        if (!$motoristaEntradaId) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['motorista_entrada_id' => 'Não foi possível determinar o motorista de entrada para este tipo de veículo.']);
+        }
+
+        RegistroVeiculo::create([
+            'veiculo_id' => $request->veiculo_id,
+            'placa' => $veiculo->placa,
+            'marca' => $request->marca,
+            'modelo' => $request->modelo,
+            'cor' => $request->cor,
+            'tipo' => $request->tipo,
+            'motorista_entrada_id' => $motoristaEntradaId,
+            'motorista_saida_id' => $request->motorista_saida_id,
+            'horario_saida' => $request->horario_saida,
+            'usuario_saida_id' => $request->usuario_saida_id,
+            'estacionamento_id' => $request->estacionamento_id,
+            'quantidade_passageiros' => $request->quantidade_passageiros,
+            'horario_entrada' => now(),
+            'usuario_entrada_id' => Auth::id(),
+        ]);
 
         return redirect()->route('registro_veiculos.index')->with('success', 'Registro criado com sucesso.');
     }
@@ -99,9 +116,11 @@ class RegistroVeiculoController extends Controller
     public function show($id)
     {
         $registro = RegistroVeiculo::with([
-            'veiculo',
+            'veiculo.acessoLiberado.motorista',
             'motoristaEntrada',
             'motoristaSaida',
+            'usuarioEntrada',
+            'usuarioSaida',
             'estacionamento'
         ])->findOrFail($id);
 
@@ -135,6 +154,7 @@ class RegistroVeiculoController extends Controller
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
             'quantidade_passageiros' => 'required|integer|min:0|max:10',
+            'acesso_id' => 'nullable|exists:acessos_liberados,id', // 🔄 Se quiser permitir atualização do acesso
         ]);
 
         $registro->update($request->only([
@@ -175,13 +195,13 @@ class RegistroVeiculoController extends Controller
             'motorista_saida_id' => 'required|exists:motoristas_oficiais,id',
         ]);
 
-        $registro->horario_saida = now();
-        $registro->usuario_saida_id = Auth::id();
-        $registro->motorista_saida_id = $request->motorista_saida_id;
-        $registro->save();
+        $registro->update([
+            'horario_saida' => now(),
+            'usuario_saida_id' => Auth::id(),
+            'motorista_saida_id' => $request->motorista_saida_id,
+        ]);
 
-        return redirect()->route('registro_veiculos.index')
-            ->with('success', 'Saída registrada com sucesso!');
+        return redirect()->route('registro_veiculos.index')->with('success', 'Saída registrada com sucesso!');
     }
 
     public function limparComSaida()

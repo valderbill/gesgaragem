@@ -32,7 +32,7 @@
            value="{{ old('marca') }}" required>
 </div>
 
-{{-- Campo de motorista, exibido apenas se tipo for OFICIAL --}}
+{{-- Campo para OFICIAL: Select de acesso liberado --}}
 <div class="mb-3" id="acesso-container" style="display: none;">
     <label for="acesso_id" class="form-label">Acesso Liberado</label>
     <select name="acesso_id" id="acesso_id" class="form-select">
@@ -44,3 +44,80 @@
         @endforeach
     </select>
 </div>
+
+{{-- Campo para PARTICULAR/MOTO: buscar nome e preencher acesso_id --}}
+<div class="mb-3" id="motorista-nome-container" style="display: none;">
+    <label for="motorista_nome" class="form-label">Nome do Motorista</label>
+    <input type="text" id="motorista_nome" class="form-control" placeholder="Digite para buscar...">
+    <input type="hidden" name="acesso_id" id="acesso_id_hidden" value="{{ old('acesso_id') }}">
+</div>
+
+{{-- jQuery + Select2 (ou outro plugin de autocomplete pode ser usado) --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tipoSelect = document.getElementById('tipo');
+    const acessoSelectContainer = document.getElementById('acesso-container');
+    const motoristaNomeContainer = document.getElementById('motorista-nome-container');
+    const acessoSelect = document.getElementById('acesso_id');
+    const motoristaInput = document.getElementById('motorista_nome');
+    const acessoHidden = document.getElementById('acesso_id_hidden');
+
+    function toggleCamposMotorista() {
+        const tipo = tipoSelect.value;
+
+        if (tipo === 'OFICIAL') {
+            acessoSelectContainer.style.display = 'block';
+            motoristaNomeContainer.style.display = 'none';
+            motoristaInput.value = '';
+            acessoHidden.value = '';
+        } else if (tipo === 'PARTICULAR' || tipo === 'MOTO') {
+            acessoSelectContainer.style.display = 'none';
+            motoristaNomeContainer.style.display = 'block';
+            acessoSelect.value = '';
+        } else {
+            acessoSelectContainer.style.display = 'none';
+            motoristaNomeContainer.style.display = 'none';
+            acessoSelect.value = '';
+            motoristaInput.value = '';
+            acessoHidden.value = '';
+        }
+    }
+
+    tipoSelect.addEventListener('change', toggleCamposMotorista);
+    toggleCamposMotorista();
+
+    // Autocomplete do nome do motorista
+    $('#motorista_nome').select2({
+        placeholder: 'Digite o nome...',
+        minimumInputLength: 2,
+        ajax: {
+            url: '{{ route("acessos.buscar") }}', // crie essa rota
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.map(item => ({
+                        id: item.id,
+                        text: item.nome + ' - ' + item.matricula
+                    }))
+                };
+            },
+            cache: true
+        }
+    });
+
+    $('#motorista_nome').on('select2:select', function (e) {
+        const selected = e.params.data;
+        acessoHidden.value = selected.id; // preenche acesso_id com id do motorista
+    });
+});
+</script>

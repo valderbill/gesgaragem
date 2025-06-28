@@ -71,4 +71,16 @@ class AcessoLiberadoController extends Controller
 
         return redirect()->route('acessos_liberados.index')->with('success', 'Acesso liberado deletado com sucesso!');
     }
+    public function buscar(Request $request)
+{
+    $query = $request->input('q');
+
+    $resultados = AcessoLiberado::where('nome', 'like', "%$query%")
+        ->orWhere('matricula', 'like', "%$query%")
+        ->limit(10)
+        ->get();
+
+    return response()->json($resultados);
+}
+
 }

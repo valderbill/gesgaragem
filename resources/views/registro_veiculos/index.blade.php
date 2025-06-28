@@ -13,7 +13,6 @@
     {{-- Botões de Ações --}}
     <div class="mb-3 d-flex justify-content-between">
         <a href="{{ route('registro_veiculos.create') }}" class="btn btn-primary">Novo Registro</a>
-
         <a href="{{ route('registro_veiculos.index', ['filtro' => 'sem_saida']) }}" title="Ocultar registros com saída">
             <i class="bi bi-x-circle"></i>
         </a>
@@ -55,7 +54,7 @@
                 <th>Tipo</th>
                 <th>Motorista Entrada</th>
                 <th>Motorista Saída</th>
-                <th>Passageiros</th> {{-- NOVO --}}
+                <th>Passageiros</th>
                 <th>Horário Entrada</th>
                 <th>Horário Saída</th>
                 <th>Usuário Entrada</th>
@@ -71,7 +70,13 @@
                 <td>{{ $registro->modelo }}</td>
                 <td>{{ $registro->cor }}</td>
                 <td>{{ $registro->tipo }}</td>
-                <td>{{ $registro->motoristaEntrada->nome ?? 'N/A' }}</td>
+                <td>
+                    @if(in_array($registro->tipo, ['PARTICULAR', 'MOTO']))
+                        {{ $registro->veiculo->acessoLiberado->motorista->nome ?? 'N/A' }}
+                    @else
+                        {{ $registro->motoristaEntrada->nome ?? 'N/A' }}
+                    @endif
+                </td>
                 <td>
                     @if (!$registro->horario_saida)
                         <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
@@ -86,10 +91,10 @@
                         {{ $registro->motoristaSaida->nome ?? 'N/A' }}
                     @endif
                 </td>
-                <td>{{ $registro->quantidade_passageiros ?? 0 }}</td> {{-- NOVO --}}
+                <td>{{ $registro->quantidade_passageiros ?? 0 }}</td>
                 <td>{{ $registro->horario_entrada ? Carbon::parse($registro->horario_entrada)->format('d/m/Y H:i:s') : 'N/A' }}</td>
                 <td>{{ $registro->horario_saida ? Carbon::parse($registro->horario_saida)->format('d/m/Y H:i:s') : 'N/A' }}</td>
-                <td>{{ $registro->usuarioLogado->nome ?? 'N/A' }}</td>
+                <td>{{ $registro->usuarioEntrada->nome ?? 'N/A' }}</td>
                 <td>{{ $registro->usuarioSaida->nome ?? 'N/A' }}</td>
                 <td>
                     @if (!$registro->horario_saida)

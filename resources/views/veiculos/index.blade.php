@@ -26,6 +26,7 @@
                 <th>Tipo</th>
                 <th>Cor</th>
                 <th>Marca</th>
+                <th>Motorista</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -37,6 +38,13 @@
                     <td>{{ $veiculo->tipo }}</td>
                     <td>{{ $veiculo->cor }}</td>
                     <td>{{ $veiculo->marca }}</td>
+                    <td>
+                        @if(strtoupper($veiculo->tipo) !== 'OFICIAL')
+                            {{ $veiculo->acessoLiberado->nome ?? $veiculo->nome_motorista ?? '---' }}
+                        @else
+                            ---
+                        @endif
+                    </td>
                     <td>
                         <a href="{{ route('veiculos.show', $veiculo->id) }}" class="btn btn-info btn-sm">Ver</a>
                         <a href="{{ route('veiculos.edit', $veiculo->id) }}" class="btn btn-warning btn-sm">Editar</a>
