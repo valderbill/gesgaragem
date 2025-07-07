@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Importa CSS do Select2 -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 <div class="container">
-    <h1>Criar Novo Registro de Veículo</h1>
+    <h1 class="mb-4">Criar Novo Registro de Veículo</h1>
 
     @if ($errors->any())
         <div class="alert alert-danger">
@@ -34,7 +33,7 @@
             <div class="col-md-2 mb-3">
                 <label for="placa" class="form-label">Placa</label>
                 <select name="veiculo_id" id="placa" class="form-select" required>
-                    @if(old('placa'))
+                    @if(old('veiculo_id') && old('placa'))
                         <option value="{{ old('veiculo_id') }}" selected>{{ old('placa') }}</option>
                     @endif
                 </select>
@@ -95,7 +94,6 @@
     </form>
 </div>
 
-<!-- Scripts do jQuery e Select2 -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -112,7 +110,6 @@ $(document).ready(function () {
         const motoristaSelect = $('#motorista_entrada_id');
 
         if ((tipo === 'PARTICULAR' || tipo === 'MOTO') && dados.motorista_entrada_id) {
-            // Garante que o motorista correspondente esteja presente e selecionado
             const option = new Option(dados.motorista_nome, dados.motorista_entrada_id, true, true);
             motoristaSelect.empty().append(option).trigger('change');
             motoristaSelect.prop('disabled', true);
@@ -160,10 +157,10 @@ $(document).ready(function () {
         preencherCampos(dados);
     });
 
-    @if(old('placa'))
+    @if(old('veiculo_id'))
         $.ajax({
             url: '{{ route("veiculos.buscar") }}',
-            data: { term: '{{ old("placa") }}' },
+            data: { id: '{{ old("veiculo_id") }}' },
             success: function(response) {
                 if (response.results && response.results.length > 0) {
                     const dados = response.results[0];

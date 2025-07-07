@@ -6,7 +6,7 @@
 
     {{-- Exibir nome do usuário logado --}}
     @if(Auth::check())
-        <p><strong>Usuário logado:</strong> {{ Auth::user()->name }}</p>
+        <p><strong>Usuário logado:</strong> {{ Auth::user()->nome }}</p>
     @else
         <p><strong>Usuário não localizado</strong></p>
     @endif
@@ -20,7 +20,6 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Ocorrência</th>
                 <th>Horário</th>
                 <th>Usuário</th>
@@ -30,10 +29,9 @@
         <tbody>
             @foreach($ocorrencias as $ocorrencia)
             <tr>
-                <td>{{ $ocorrencia->id }}</td>
                 <td>{{ Str::limit($ocorrencia->ocorrencia, 50) }}</td>
-                <td>{{ $ocorrencia->horario }}</td>
-                <td>{{ optional($ocorrencia->usuario)->name ?? 'Não informado' }}</td>
+                <td>{{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i:s') }}</td>
+                <td>{{ $ocorrencia->usuario->nome ?? Auth::user()->nome }}</td>
                 <td>
                     <a href="{{ route('ocorrencias.edit', $ocorrencia->id) }}" class="btn btn-success btn-sm">Incluir</a>
                 </td>

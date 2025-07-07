@@ -17,6 +17,12 @@
 </div>
 
 <div class="mb-3">
+    <label for="marca" class="form-label">Marca</label>
+    <input type="text" name="marca" id="marca" class="form-control"
+           value="{{ old('marca') }}" required>
+</div>
+
+<div class="mb-3">
     <label for="tipo" class="form-label">Tipo</label>
     <select name="tipo" id="tipo" class="form-select" required>
         <option value="">Selecione...</option>
@@ -24,12 +30,6 @@
         <option value="PARTICULAR" {{ old('tipo') == 'PARTICULAR' ? 'selected' : '' }}>PARTICULAR</option>
         <option value="MOTO" {{ old('tipo') == 'MOTO' ? 'selected' : '' }}>MOTO</option>
     </select>
-</div>
-
-<div class="mb-3">
-    <label for="marca" class="form-label">Marca</label>
-    <input type="text" name="marca" id="marca" class="form-control"
-           value="{{ old('marca') }}" required>
 </div>
 
 {{-- Campo para OFICIAL: Select de acesso liberado --}}
@@ -52,7 +52,7 @@
     <input type="hidden" name="acesso_id" id="acesso_id_hidden" value="{{ old('acesso_id') }}">
 </div>
 
-{{-- jQuery + Select2 (ou outro plugin de autocomplete pode ser usado) --}}
+{{-- jQuery + Select2 --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
         placeholder: 'Digite o nome...',
         minimumInputLength: 2,
         ajax: {
-            url: '{{ route("acessos.buscar") }}', // crie essa rota
+            url: '{{ route("acessos.buscar") }}', // Ajuste esta rota
             dataType: 'json',
             delay: 250,
             data: function (params) {
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('#motorista_nome').on('select2:select', function (e) {
         const selected = e.params.data;
-        acessoHidden.value = selected.id; // preenche acesso_id com id do motorista
+        acessoHidden.value = selected.id;
     });
 });
 </script>

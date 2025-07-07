@@ -122,33 +122,6 @@
         </div>
     </nav>
 
-    <!-- Estacionamento atual + data -->
-    @php
-        use Carbon\Carbon;
-
-        Carbon::setLocale('pt_BR');
-        setlocale(LC_TIME, 'pt_BR.UTF-8');
-
-        $data = Carbon::now();
-        $dataFormatada = $data->format('d/m/Y');
-        $diaSemana = $data->translatedFormat('l');
-    @endphp
-
-    @if(session('estacionamento_id'))
-        @php
-            $estacionamento = \App\Models\Estacionamento::find(session('estacionamento_id'));
-        @endphp
-        @if($estacionamento)
-        <div class="container mb-3">
-            <div class="alert alert-info text-center">
-                <div>Estacionamento atual: <strong>{{ $estacionamento->nome }}</strong></div>
-                <div>{{ $dataFormatada }}</div>
-                <div class="text-capitalize">{{ $diaSemana }}</div>
-            </div>
-        </div>
-        @endif
-    @endif
-
     <!-- Conteúdo das páginas -->
     <div class="container">
         @yield('content')

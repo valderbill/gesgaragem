@@ -12,9 +12,15 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
     @if($motoristas->count() > 0)
-        <table class="table table-bordered">
-            <thead>
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
                 <tr>
                     <th>Foto</th>
                     <th>Nome</th>
@@ -27,7 +33,7 @@
                     <tr>
                         <td>
                             @if($motorista->foto)
-                                <img src="{{ asset('storage/' . $motorista->foto) }}" width="80" height="80" alt="Foto">
+                                <img src="{{ asset('storage/' . $motorista->foto) }}" width="80" height="80" alt="Foto" class="rounded">
                             @else
                                 <span>Sem foto</span>
                             @endif
@@ -41,7 +47,7 @@
                             <form action="{{ route('motoristas.destroy', $motorista->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Tem certeza que deseja excluir este motorista?')">
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn btn-danger btn-sm">Excluir</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
                             </form>
                         </td>
                     </tr>

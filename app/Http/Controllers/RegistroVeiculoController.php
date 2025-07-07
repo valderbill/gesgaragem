@@ -17,6 +17,7 @@ class RegistroVeiculoController extends Controller
     {
         $estacionamentoId = auth()->user()->estacionamento_id ?? session('estacionamento_id');
         $filtro = $request->input('filtro');
+        $placa = $request->input('placa'); // Filtro por placa
 
         $registros = RegistroVeiculo::with([
             'veiculo.acessoLiberado.motorista',
@@ -28,6 +29,12 @@ class RegistroVeiculoController extends Controller
         ])
         ->when($estacionamentoId, fn($query) => $query->where('estacionamento_id', $estacionamentoId))
         ->when($filtro === 'sem_saida', fn($query) => $query->whereNull('horario_saida'))
+        // Corrigido: busca pela placa do veículo relacionado
+        ->when($placa, function($query) use ($placa) {
+            $query->whereHas('veiculo', function($q) use ($placa) {
+                $q->where('placa', 'like', '%' . $placa . '%');
+            });
+        })
         ->orderByDesc('horario_entrada')
         ->paginate(10);
 
@@ -60,7 +67,7 @@ class RegistroVeiculoController extends Controller
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
             'quantidade_passageiros' => 'required|integer|min:0|max:10',
-            'acesso_id' => 'nullable|exists:acessos_liberados,id', // ✅ Adicionado
+            'acesso_id' => 'nullable|exists:acessos_liberados,id',
         ]);
 
         $registroAberto = RegistroVeiculo::where('veiculo_id', $request->veiculo_id)
@@ -75,7 +82,6 @@ class RegistroVeiculoController extends Controller
 
         $veiculo = Veiculo::with('acessoLiberado.motorista')->findOrFail($request->veiculo_id);
 
-        // Definir motorista de entrada baseado no tipo
         if ($request->tipo === 'OFICIAL') {
             $motoristaEntradaId = $request->motorista_entrada_id;
         } else {
@@ -154,7 +160,7 @@ class RegistroVeiculoController extends Controller
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
             'quantidade_passageiros' => 'required|integer|min:0|max:10',
-            'acesso_id' => 'nullable|exists:acessos_liberados,id', // 🔄 Se quiser permitir atualização do acesso
+            'acesso_id' => 'nullable|exists:acessos_liberados,id',
         ]);
 
         $registro->update($request->only([

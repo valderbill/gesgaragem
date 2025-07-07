@@ -24,11 +24,12 @@ class VeiculoController extends Controller
         return view('veiculos.create', compact('acessos', 'usuarios'));
     }
 
+    // Busca para Select2 - CORRIGIDA
     public function buscar(Request $request)
     {
-        $termo = $request->input('term');
+        $termo = strtoupper($request->input('term'));
 
-        $veiculos = Veiculo::where('placa', 'ILIKE', "%{$termo}%")
+        $veiculos = Veiculo::where('placa', 'LIKE', "%{$termo}%")
             ->limit(10)
             ->get();
 
@@ -36,13 +37,17 @@ class VeiculoController extends Controller
             return [
                 'id' => $veiculo->id,
                 'text' => $veiculo->placa,
+                'placa' => $veiculo->placa,
                 'marca' => $veiculo->marca,
                 'modelo' => $veiculo->modelo,
                 'cor' => $veiculo->cor,
                 'tipo' => $veiculo->tipo,
+                'motorista_entrada_id' => $veiculo->motorista_entrada_id,
+                'motorista_nome' => optional($veiculo->motoristaEntrada)->nome,
             ];
         });
 
+        // O Select2 espera um array com a chave 'results'
         return response()->json(['results' => $resultados]);
     }
 
@@ -147,11 +152,11 @@ class VeiculoController extends Controller
 
     public function destroy(Veiculo $veiculo)
     {
-        $temOcorrencias = DB::table('ocorrencias')->where('placa', $veiculo->placa)->exists();
+        $temRegistros = RegistroVeiculo::where('placa', $veiculo->placa)->exists();
 
-        if ($temOcorrencias) {
+        if ($temRegistros) {
             return redirect()->route('veiculos.index')
-                ->with('error', 'O veículo não pode ser deletado porque possui ocorrências geradas.');
+                ->with('error', 'O veículo não pode ser excluído porque está vinculado a registros de entrada/saída.');
         }
 
         $veiculo->delete();
@@ -182,7 +187,6 @@ class VeiculoController extends Controller
         return response()->json(['success' => false, 'message' => 'Veículo não encontrado.']);
     }
 
-    // NOVO MÉTODO - Busca motorista anterior por placa
     public function motoristaPorPlaca($placa)
     {
         $placa = strtoupper($placa);
@@ -190,7 +194,7 @@ class VeiculoController extends Controller
         $registro = RegistroVeiculo::where('placa', $placa)
             ->whereNotNull('motorista_entrada_id')
             ->latest('id')
-            ->with('motoristaEntrada') // relacionamento
+            ->with('motoristaEntrada')
             ->first();
 
         if ($registro && $registro->motoristaEntrada) {
@@ -202,5 +206,19 @@ class VeiculoController extends Controller
         }
 
         return response()->json(null, 404);
+    }
+
+    public function buscarPorId($id)
+    {
+        $veiculo = Veiculo::with('acessoLiberado.motorista')->findOrFail($id);
+
+        return response()->json([
+            'placa' => $veiculo->placa,
+            'marca' => $veiculo->marca,
+            'modelo' => $veiculo->modelo,
+            'cor' => $veiculo->cor,
+            'tipo' => $veiculo->tipo,
+            'motorista_id' => optional($veiculo->acessoLiberado)->motorista_id
+        ]);
     }
 }

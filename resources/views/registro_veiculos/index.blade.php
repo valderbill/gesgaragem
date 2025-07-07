@@ -10,13 +10,20 @@
 @endphp
 
 <div class="container">
-    {{-- Botões de Ações --}}
+    {{-- Botões e Filtro --}}
     <div class="mb-3 d-flex justify-content-between">
         <a href="{{ route('registro_veiculos.create') }}" class="btn btn-primary">Novo Registro</a>
+
         <a href="{{ route('registro_veiculos.index', ['filtro' => 'sem_saida']) }}" title="Ocultar registros com saída">
             <i class="bi bi-x-circle"></i>
         </a>
     </div>
+
+    {{-- Filtro por placa --}}
+    <form method="GET" action="{{ route('registro_veiculos.index') }}" class="mb-4 d-flex">
+        <input type="text" name="placa" class="form-control me-2" placeholder="Buscar por placa" value="{{ request('placa') }}">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+    </form>
 
     {{-- Painel de Contadores Digitais --}}
     <div class="mb-4">
@@ -70,13 +77,7 @@
                 <td>{{ $registro->modelo }}</td>
                 <td>{{ $registro->cor }}</td>
                 <td>{{ $registro->tipo }}</td>
-                <td>
-                    @if(in_array($registro->tipo, ['PARTICULAR', 'MOTO']))
-                        {{ $registro->veiculo->acessoLiberado->motorista->nome ?? 'N/A' }}
-                    @else
-                        {{ $registro->motoristaEntrada->nome ?? 'N/A' }}
-                    @endif
-                </td>
+                <td>{{ $registro->motoristaEntrada->nome ?? 'N/A' }}</td>
                 <td>
                     @if (!$registro->horario_saida)
                         <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
@@ -112,7 +113,8 @@
         </tbody>
     </table>
 
-    {{ $registros->links() }}
+    {{-- Paginação com filtro mantido --}}
+    {{ $registros->withQueryString()->links() }}
 
     {{-- Canvas para gráfico --}}
     <canvas id="graficoVagas" style="max-width:600px; margin: 20px auto; display: block;"></canvas>

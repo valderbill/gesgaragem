@@ -59,8 +59,9 @@ Route::middleware(['auth'])->group(function () {
 // ---------------------
 // Buscas e autocomplete
 // ---------------------
-Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar'); 
+Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar'); // autocomplete
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
+Route::get('/veiculos/buscar-por-id/{id}', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId'); // ✅ CORRIGIDO
 
 // ✅ Buscar motorista anterior por placa
 Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
@@ -80,7 +81,7 @@ Route::post('/definir-estacionamento', [EstacionamentoController::class, 'defini
 Route::resource('usuarios', UsuarioController::class);
 Route::resource('motoristas', MotoristaController::class);
 Route::resource('acessos_liberados', AcessoLiberadoController::class);
-Route::resource('veiculos', VeiculoController::class); 
+Route::resource('veiculos', VeiculoController::class);
 Route::resource('registro_veiculos', RegistroVeiculoController::class);
 Route::resource('estacionamentos', EstacionamentoController::class);
 
@@ -119,7 +120,5 @@ Route::get('/teste', function () {
     return 'Você está no projeto gesgaragem!';
 });
 
-// ✅ ---------------------------
-// Rotas de Mensagens
-// ---------------------------
+// ✅ Rotas de Mensagens
 Route::resource('mensagens', MensagemController::class)->middleware('auth');
