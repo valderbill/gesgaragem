@@ -7,15 +7,11 @@
     <a href="{{ route('motoristas.create') }}" class="btn btn-success mb-3">Cadastrar Novo Motorista</a>
 
     @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
+        <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
+        <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
     @if($motoristas->count() > 0)
@@ -25,7 +21,10 @@
                     <th>Foto</th>
                     <th>Nome</th>
                     <th>Matrícula</th>
-                    <th>Ações</th>
+                    @if(strtolower(Auth::user()->perfil->nome) === 'administrador')
+                        <th>Status</th>
+                        <th>Ações</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -40,16 +39,29 @@
                         </td>
                         <td>{{ $motorista->nome }}</td>
                         <td>{{ $motorista->matricula }}</td>
-                        <td>
-                            <a href="{{ route('motoristas.show', $motorista->id) }}" class="btn btn-info btn-sm">Visualizar</a>
-                            <a href="{{ route('motoristas.edit', $motorista->id) }}" class="btn btn-warning btn-sm">Editar</a>
 
-                            <form action="{{ route('motoristas.destroy', $motorista->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Tem certeza que deseja excluir este motorista?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
-                            </form>
-                        </td>
+                        @if(strtolower(Auth::user()->perfil->nome) === 'administrador')
+                            <td>
+                                <form action="{{ route('motoristas.alternar-status', $motorista->id) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label class="form-check-label">
+                                            <input type="radio" name="ativo" value="1" onchange="this.form.submit()" {{ $motorista->ativo ? 'checked' : '' }}>
+                                            Ativo
+                                        </label>
+                                        <label class="form-check-label">
+                                            <input type="radio" name="ativo" value="0" onchange="this.form.submit()" {{ !$motorista->ativo ? 'checked' : '' }}>
+                                            Inativo
+                                        </label>
+                                    </div>
+                                </form>
+                            </td>
+                            <td>
+                                <a href="{{ route('motoristas.show', $motorista->id) }}" class="btn btn-info btn-sm">Visualizar</a>
+                                <a href="{{ route('motoristas.edit', $motorista->id) }}" class="btn btn-warning btn-sm">Editar</a>
+                            </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

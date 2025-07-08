@@ -47,10 +47,15 @@ class Usuario extends Authenticatable
     }
 
     // ✅ Adicionado: mensagens não lidas usando tabela pivot
-    public function mensagensNaoLidas()
+    
+public function mensagensNaoLidas()
 {
     return $this->belongsToMany(Mensagem::class, 'mensagem_destinatarios', 'destinatario_id', 'mensagem_id')
                 ->wherePivot('lida', false);
 }
 
+public function acessosLiberados()
+{
+    return $this->hasMany(AcessoLiberado::class, 'usuario_id');
+}
 }

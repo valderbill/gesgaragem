@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Motorista;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\QueryException;
 
 class MotoristaController extends Controller
 {
@@ -28,14 +27,13 @@ class MotoristaController extends Controller
             'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Salva a imagem na pasta storage/app/public/motoristas
         $fotoPath = $request->file('foto')->store('motoristas', 'public');
 
-        // Cria novo motorista
         Motorista::create([
             'nome' => $request->nome,
             'matricula' => $request->matricula,
             'foto' => $fotoPath,
+            'ativo' => true, // Sempre inicia como ativo
         ]);
 
         return redirect()->route('motoristas.index')->with('success', 'Motorista cadastrado com sucesso.');
@@ -68,7 +66,6 @@ class MotoristaController extends Controller
             if ($motorista->foto && Storage::disk('public')->exists($motorista->foto)) {
                 Storage::disk('public')->delete($motorista->foto);
             }
-
             $fotoPath = $request->file('foto')->store('motoristas', 'public');
             $data['foto'] = $fotoPath;
         }
@@ -78,27 +75,14 @@ class MotoristaController extends Controller
         return redirect()->route('motoristas.index')->with('success', 'Motorista atualizado com sucesso.');
     }
 
-    public function destroy(Motorista $motorista)
+    // Novo método para ativar/inativar
+    public function alternarStatus($id)
     {
-        try {
-            // Guarda o caminho da foto antes de deletar do banco
-            $fotoPath = $motorista->foto;
+        $motorista = Motorista::findOrFail($id);
+        $motorista->ativo = !$motorista->ativo;
+        $motorista->save();
 
-            // Tenta excluir o motorista do banco
-            $motorista->delete();
-
-            // Se deletou com sucesso, então apaga a imagem
-            if ($fotoPath && Storage::disk('public')->exists($fotoPath)) {
-                Storage::disk('public')->delete($fotoPath);
-            }
-
-            return redirect()->route('motoristas.index')->with('success', 'Motorista excluído com sucesso.');
-        } catch (QueryException $e) {
-            if ($e->getCode() === '23503') { // PostgreSQL: violação de chave estrangeira
-                return redirect()->route('motoristas.index')->with('error', 'Motorista não pode ser deletado. Existem registros vinculados a ele.');
-            }
-
-            return redirect()->route('motoristas.index')->with('error', 'Erro ao tentar excluir o motorista.');
-        }
+        return redirect()->route('motoristas.index')
+            ->with('success', 'Status do motorista atualizado com sucesso!');
     }
 }

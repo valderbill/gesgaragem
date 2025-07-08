@@ -14,28 +14,30 @@ class Veiculo extends Model
         'cor',
         'tipo',
         'marca',
-        'acesso_id', // campo de relacionamento com AcessoLiberado
+        'acesso_id',      // Para veículos PARTICULAR/MOTO
+        'motorista_id',   // Para veículos OFICIAL
+        // Adicione aqui outros campos que existirem na tabela veiculos
     ];
 
     /**
-     * Relacionamento com AcessoLiberado (acesso_id está na tabela veiculos).
-     * Um veículo pertence a um acesso liberado.
+     * Relacionamento com AcessoLiberado (usado para veículos PARTICULAR/MOTO).
      */
-    public function acessoLiberado()
+    public function acesso()
     {
-        return $this->belongsTo(AcessoLiberado::class, 'acesso_id');
+        return $this->belongsTo(\App\Models\AcessoLiberado::class, 'acesso_id');
     }
 
-    public function buscar(Request $request)
-{
-    $term = $request->get('term');
+    /**
+     * Relacionamento com MotoristaOficial (usado para veículos OFICIAL).
+     */
+    public function motoristaOficial()
+    {
+        return $this->belongsTo(\App\Models\MotoristaOficial::class, 'motorista_id');
+    }
 
-    $veiculos = Veiculo::where('placa', 'ILIKE', "%{$term}%")
-        ->select('id', DB::raw("placa AS text"))
-        ->limit(10)
-        ->get();
-
-    return response()->json($veiculos);
-}
-
+    // Exemplo de outros relacionamentos, caso existam:
+    // public function usuario()
+    // {
+    //     return $this->belongsTo(\App\Models\Usuario::class, 'usuario_id');
+    // }
 }

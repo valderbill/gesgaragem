@@ -23,6 +23,13 @@
             <p class="card-text"><strong>Tipo:</strong> {{ $veiculo->tipo }}</p>
             <p class="card-text"><strong>Cor:</strong> {{ $veiculo->cor }}</p>
             <p class="card-text"><strong>Marca:</strong> {{ $veiculo->marca }}</p>
+            <p class="card-text"><strong>Motorista:</strong>
+                @if($veiculo->tipo === 'OFICIAL')
+                    ---
+                @else
+                    {{ $veiculo->acesso->nome ?? '---' }}
+                @endif
+            </p>
         </div>
     </div>
 

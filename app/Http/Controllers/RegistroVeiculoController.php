@@ -10,6 +10,7 @@ use App\Models\Estacionamento;
 use App\Models\AcessoLiberado;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RegistroVeiculoController extends Controller
 {
@@ -17,10 +18,10 @@ class RegistroVeiculoController extends Controller
     {
         $estacionamentoId = auth()->user()->estacionamento_id ?? session('estacionamento_id');
         $filtro = $request->input('filtro');
-        $placa = $request->input('placa'); // Filtro por placa
+        $placa = $request->input('placa');
 
         $registros = RegistroVeiculo::with([
-            'veiculo.acessoLiberado.motorista',
+            'veiculo',
             'motoristaEntrada',
             'motoristaSaida',
             'usuarioEntrada',
@@ -29,9 +30,8 @@ class RegistroVeiculoController extends Controller
         ])
         ->when($estacionamentoId, fn($query) => $query->where('estacionamento_id', $estacionamentoId))
         ->when($filtro === 'sem_saida', fn($query) => $query->whereNull('horario_saida'))
-        // Corrigido: busca pela placa do veículo relacionado
-        ->when($placa, function($query) use ($placa) {
-            $query->whereHas('veiculo', function($q) use ($placa) {
+        ->when($placa, function ($query) use ($placa) {
+            $query->whereHas('veiculo', function ($q) use ($placa) {
                 $q->where('placa', 'like', '%' . $placa . '%');
             });
         })
@@ -46,11 +46,10 @@ class RegistroVeiculoController extends Controller
     public function create()
     {
         $veiculos = Veiculo::all();
-        $motoristas = Motorista::all();
         $usuarios = Usuario::where('ativo', true)->get();
         $estacionamentos = Estacionamento::all();
 
-        return view('registro_veiculos.create', compact('veiculos', 'motoristas', 'usuarios', 'estacionamentos'));
+        return view('registro_veiculos.create', compact('veiculos', 'usuarios', 'estacionamentos'));
     }
 
     public function store(Request $request)
@@ -67,7 +66,6 @@ class RegistroVeiculoController extends Controller
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
             'quantidade_passageiros' => 'required|integer|min:0|max:10',
-            'acesso_id' => 'nullable|exists:acessos_liberados,id',
         ]);
 
         $registroAberto = RegistroVeiculo::where('veiculo_id', $request->veiculo_id)
@@ -77,26 +75,22 @@ class RegistroVeiculoController extends Controller
         if ($registroAberto) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['veiculo_id' => 'Este veículo já possui uma entrada aberta. Registre a saída antes de uma nova entrada.']);
+                ->withErrors(['veiculo_id' => 'Este veículo já possui uma entrada aberta. Registre a saída antes de criar uma nova.']);
         }
 
-        $veiculo = Veiculo::with('acessoLiberado.motorista')->findOrFail($request->veiculo_id);
+        $veiculo = Veiculo::findOrFail($request->veiculo_id);
 
         if ($request->tipo === 'OFICIAL') {
             $motoristaEntradaId = $request->motorista_entrada_id;
         } else {
-            if ($request->filled('acesso_id')) {
-                $acesso = AcessoLiberado::find($request->acesso_id);
-                $motoristaEntradaId = optional($acesso)->motorista_id;
-            } else {
-                $motoristaEntradaId = optional($veiculo->acessoLiberado)->motorista_id;
-            }
+            // Para PARTICULAR ou MOTO, pega o motorista cadastrado no veículo
+            $motoristaEntradaId = $veiculo->motorista_id ?? null;
         }
 
         if (!$motoristaEntradaId) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['motorista_entrada_id' => 'Não foi possível determinar o motorista de entrada para este tipo de veículo.']);
+                ->withErrors(['motorista_entrada_id' => 'É necessário selecionar ou ter um motorista cadastrado para este tipo de veículo.']);
         }
 
         RegistroVeiculo::create([
@@ -122,7 +116,7 @@ class RegistroVeiculoController extends Controller
     public function show($id)
     {
         $registro = RegistroVeiculo::with([
-            'veiculo.acessoLiberado.motorista',
+            'veiculo',
             'motoristaEntrada',
             'motoristaSaida',
             'usuarioEntrada',
@@ -137,11 +131,10 @@ class RegistroVeiculoController extends Controller
     {
         $registro = RegistroVeiculo::findOrFail($id);
         $veiculos = Veiculo::all();
-        $motoristas = Motorista::all();
         $usuarios = Usuario::where('ativo', true)->get();
         $estacionamentos = Estacionamento::all();
 
-        return view('registro_veiculos.edit', compact('registro', 'veiculos', 'motoristas', 'usuarios', 'estacionamentos'));
+        return view('registro_veiculos.edit', compact('registro', 'veiculos', 'usuarios', 'estacionamentos'));
     }
 
     public function update(Request $request, $id)
@@ -160,7 +153,6 @@ class RegistroVeiculoController extends Controller
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
             'quantidade_passageiros' => 'required|integer|min:0|max:10',
-            'acesso_id' => 'nullable|exists:acessos_liberados,id',
         ]);
 
         $registro->update($request->only([
@@ -185,7 +177,7 @@ class RegistroVeiculoController extends Controller
         $registro = RegistroVeiculo::findOrFail($id);
         $registro->delete();
 
-        return redirect()->route('registro_veiculos.index')->with('success', 'Registro deletado com sucesso.');
+        return redirect()->route('registro_veiculos.index')->with('success', 'Registro removido com sucesso.');
     }
 
     public function registrarSaida(Request $request, $id)
@@ -213,5 +205,32 @@ class RegistroVeiculoController extends Controller
     public function limparComSaida()
     {
         return redirect()->route('registro_veiculos.index', ['filtro' => 'sem_saida']);
+    }
+
+    public function buscarMotoristasAcesso(Request $request)
+    {
+        $term = $request->input('term');
+        $tipo = $request->input('tipo');
+
+        if ($tipo === 'OFICIAL') {
+            // Busca motoristas oficiais ativos
+            $query = DB::table('motoristas_oficiais')
+                ->where('ativo', true)
+                ->where('nome', 'ILIKE', '%' . $term . '%')
+                ->limit(10)
+                ->get();
+
+            $results = $query->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'nome' => $m->nome,
+                ];
+            });
+
+            return response()->json(['results' => $results]);
+        }
+
+        // Para PARTICULAR/MOTO não retorna nada (não há select)
+        return response()->json(['results' => []]);
     }
 }

@@ -59,15 +59,21 @@ Route::middleware(['auth'])->group(function () {
 // ---------------------
 // Buscas e autocomplete
 // ---------------------
-Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar'); // autocomplete
+Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar');
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
-Route::get('/veiculos/buscar-por-id/{id}', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId'); // ✅ CORRIGIDO
+Route::get('/veiculos/buscar-por-id/{id}', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId');
 
 // ✅ Buscar motorista anterior por placa
 Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
 
+// ✅ Buscar veículo por placa (API para AJAX)
+Route::get('/api/veiculo-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca']);
+
 // ✅ Rota para buscar acessos liberados (autocomplete nome/matrícula)
 Route::get('/acessos/buscar', [AcessoLiberadoController::class, 'buscar'])->name('acessos.buscar');
+
+// ✅ Rota para buscar motoristas de acessos liberados (para registro de veículos PARTICULAR/MOTO)
+Route::get('/registro-veiculos/buscar-motoristas-acesso', [RegistroVeiculoController::class, 'buscarMotoristasAcesso'])->name('registro_veiculos.buscar_motoristas_acesso');
 
 // ---------------------------
 // Seleção de Estacionamento
@@ -80,7 +86,9 @@ Route::post('/definir-estacionamento', [EstacionamentoController::class, 'defini
 // ---------------------------
 Route::resource('usuarios', UsuarioController::class);
 Route::resource('motoristas', MotoristaController::class);
+Route::patch('motoristas/{id}/alternar-status', [MotoristaController::class, 'alternarStatus'])->name('motoristas.alternar-status');
 Route::resource('acessos_liberados', AcessoLiberadoController::class);
+Route::patch('acessos_liberados/{id}/status', [AcessoLiberadoController::class, 'alterarStatus'])->name('acessos_liberados.status'); // ✅ NOVA ROTA ADICIONADA
 Route::resource('veiculos', VeiculoController::class);
 Route::resource('registro_veiculos', RegistroVeiculoController::class);
 Route::resource('estacionamentos', EstacionamentoController::class);
@@ -121,4 +129,4 @@ Route::get('/teste', function () {
 });
 
 // ✅ Rotas de Mensagens
-Route::resource('mensagens', MensagemController::class)->middleware('auth');
+Route::resource('mensagens', MensagemController::class);

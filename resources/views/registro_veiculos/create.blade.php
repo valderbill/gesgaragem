@@ -68,12 +68,7 @@
             <div class="col-md-3 mb-3">
                 <label for="motorista_entrada_id" class="form-label">Motorista Entrada</label>
                 <select name="motorista_entrada_id" id="motorista_entrada_id" class="form-select" required>
-                    <option value="">Selecione motorista</option>
-                    @foreach($motoristas as $motorista)
-                        <option value="{{ $motorista->id }}" {{ old('motorista_entrada_id') == $motorista->id ? 'selected' : '' }}>
-                            {{ $motorista->nome }}
-                        </option>
-                    @endforeach
+                    <option value="">Digite o nome do motorista...</option>
                 </select>
             </div>
 
@@ -99,6 +94,7 @@
 
 <script>
 $(document).ready(function () {
+
     function preencherCampos(dados) {
         $('#marca').val(dados.marca || '');
         $('#modelo').val(dados.modelo || '');
@@ -109,12 +105,17 @@ $(document).ready(function () {
         const tipo = dados.tipo || '';
         const motoristaSelect = $('#motorista_entrada_id');
 
-        if ((tipo === 'PARTICULAR' || tipo === 'MOTO') && dados.motorista_entrada_id) {
-            const option = new Option(dados.motorista_nome, dados.motorista_entrada_id, true, true);
-            motoristaSelect.empty().append(option).trigger('change');
-            motoristaSelect.prop('disabled', true);
+        // Sempre habilite o campo para garantir que será enviado no POST
+        motoristaSelect.prop('disabled', false);
+        motoristaSelect.empty();
+
+        if (tipo === 'OFICIAL') {
+            motoristaSelect.val(null).trigger('change');
         } else {
-            motoristaSelect.prop('disabled', false);
+            if (dados.motorista_entrada_id && dados.motorista_nome) {
+                const option = new Option(dados.motorista_nome, dados.motorista_entrada_id, true, true);
+                motoristaSelect.append(option).trigger('change');
+            }
         }
     }
 
@@ -149,7 +150,28 @@ $(document).ready(function () {
 
     $('#motorista_entrada_id').select2({
         placeholder: 'Digite o nome do motorista...',
-        allowClear: true
+        allowClear: true,
+        minimumInputLength: 2,
+        ajax: {
+            url: '{{ route("registro_veiculos.buscar_motoristas_acesso") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    term: params.term,
+                    tipo: 'OFICIAL'
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results.map(item => ({
+                        id: item.id,
+                        text: item.nome
+                    }))
+                };
+            },
+            cache: true
+        }
     });
 
     $('#placa').on('select2:select', function (e) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcessoLiberado;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AcessoLiberadoController extends Controller
 {
@@ -26,10 +27,13 @@ class AcessoLiberadoController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255',
             'matricula' => 'required|string|max:255',
-           
         ]);
 
-        AcessoLiberado::create($request->all());
+        $dados = $request->all();
+        $dados['usuario_id'] = Auth::id();
+        $dados['status'] = $request->has('status') ? $request->status : true; // padrão: ativo
+
+        AcessoLiberado::create($dados);
 
         return redirect()->route('acessos_liberados.index')->with('success', 'Acesso liberado criado com sucesso!');
     }
@@ -54,33 +58,37 @@ class AcessoLiberadoController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255',
             'matricula' => 'required|string|max:255',
-           
         ]);
 
+        $dados = $request->all();
+        $dados['status'] = $request->has('status') ? $request->status : true;
+
         $acesso = AcessoLiberado::findOrFail($id);
-        $acesso->update($request->all());
+        $acesso->update($dados);
 
         return redirect()->route('acessos_liberados.index')->with('success', 'Acesso liberado atualizado com sucesso!');
     }
 
-    // Deletar registro
-    public function destroy($id)
+    // Atualizar status (ativo/inativo)
+    public function alterarStatus($id)
     {
         $acesso = AcessoLiberado::findOrFail($id);
-        $acesso->delete();
+        $acesso->status = !$acesso->status;
+        $acesso->save();
 
-        return redirect()->route('acessos_liberados.index')->with('success', 'Acesso liberado deletado com sucesso!');
+        return redirect()->route('acessos_liberados.index')->with('success', 'Status alterado com sucesso!');
     }
+
+    // Buscar por nome ou matrícula
     public function buscar(Request $request)
-{
-    $query = $request->input('q');
+    {
+        $query = $request->input('q');
 
-    $resultados = AcessoLiberado::where('nome', 'like', "%$query%")
-        ->orWhere('matricula', 'like', "%$query%")
-        ->limit(10)
-        ->get();
+        $resultados = AcessoLiberado::where('nome', 'like', "%$query%")
+            ->orWhere('matricula', 'like', "%$query%")
+            ->limit(10)
+            ->get();
 
-    return response()->json($resultados);
-}
-
+        return response()->json($resultados);
+    }
 }

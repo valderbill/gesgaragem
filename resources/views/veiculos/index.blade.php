@@ -39,10 +39,10 @@
                     <td>{{ $veiculo->cor }}</td>
                     <td>{{ $veiculo->marca }}</td>
                     <td>
-                        @if(strtoupper($veiculo->tipo) !== 'OFICIAL')
-                            {{ $veiculo->acessoLiberado->nome ?? $veiculo->nome_motorista ?? '---' }}
-                        @else
+                        @if(strtoupper($veiculo->tipo) === 'OFICIAL')
                             ---
+                        @else
+                            {{ $veiculo->acesso->nome ?? '---' }}
                         @endif
                     </td>
                     <td>
