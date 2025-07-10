@@ -16,28 +16,25 @@ class Veiculo extends Model
         'marca',
         'acesso_id',      // Para veículos PARTICULAR/MOTO
         'motorista_id',   // Para veículos OFICIAL
-        // Adicione aqui outros campos que existirem na tabela veiculos
     ];
 
     /**
-     * Relacionamento com AcessoLiberado (usado para veículos PARTICULAR/MOTO).
+     * Relacionamento com AcessoLiberado (PARTICULAR/MOTO)
      */
     public function acesso()
     {
-        return $this->belongsTo(\App\Models\AcessoLiberado::class, 'acesso_id');
+        return $this->belongsTo(AcessoLiberado::class, 'acesso_id');
     }
 
     /**
-     * Relacionamento com MotoristaOficial (usado para veículos OFICIAL).
+     * Relacionamento com Motorista Oficial (OFICIAL)
      */
     public function motoristaOficial()
     {
-        return $this->belongsTo(\App\Models\MotoristaOficial::class, 'motorista_id');
+        return $this->belongsTo(Motorista::class, 'motorista_id');
     }
 
-    // Exemplo de outros relacionamentos, caso existam:
-    // public function usuario()
-    // {
-    //     return $this->belongsTo(\App\Models\Usuario::class, 'usuario_id');
-    // }
+    // A função abaixo se tornou desnecessária
+    // porque agora o nome vem direto de acessos_liberados.nome
+    // public function usuarioVinculado() { ... }
 }

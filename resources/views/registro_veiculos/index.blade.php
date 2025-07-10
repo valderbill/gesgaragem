@@ -77,7 +77,7 @@
                 <td>{{ $registro->modelo }}</td>
                 <td>{{ $registro->cor }}</td>
                 <td>{{ $registro->tipo }}</td>
-                <td>{{ $registro->motoristaEntrada->nome ?? 'N/A' }}</td>
+                <td>{{ $registro->nome_motorista_entrada ?? 'N/A' }}</td>
                 <td>
                     @if (!$registro->horario_saida)
                         <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">

@@ -61,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
 // ---------------------
 Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar');
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
-Route::get('/veiculos/buscar-por-id/{id}', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId');
+Route::get('/veiculos/{id}/buscar', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId');
 
 // ✅ Buscar motorista anterior por placa
 Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
@@ -72,7 +72,7 @@ Route::get('/api/veiculo-por-placa/{placa}', [VeiculoController::class, 'buscarP
 // ✅ Rota para buscar acessos liberados (autocomplete nome/matrícula)
 Route::get('/acessos/buscar', [AcessoLiberadoController::class, 'buscar'])->name('acessos.buscar');
 
-// ✅ Rota para buscar motoristas de acessos liberados (para registro de veículos PARTICULAR/MOTO)
+// ✅ Rota para buscar motoristas de acessos liberados (autocomplete para veículos do tipo PARTICULAR e MOTO)
 Route::get('/registro-veiculos/buscar-motoristas-acesso', [RegistroVeiculoController::class, 'buscarMotoristasAcesso'])->name('registro_veiculos.buscar_motoristas_acesso');
 
 // ---------------------------

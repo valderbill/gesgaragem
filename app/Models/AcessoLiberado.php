@@ -14,19 +14,31 @@ class AcessoLiberado extends Model
         'nome',
         'matricula',
         'motorista_id',
-        'usuario_id',
-        'status' // <-- novo campo para controle ativo/inativo
+        'usuario_id', // <- Importante garantir que esse campo exista na tabela!
+        'status',
     ];
 
-    // Relacionamento com Motorista
+    /**
+     * (Opcional) Relacionamento com Motorista oficial (caso exista vínculo)
+     */
     public function motorista()
     {
-        return $this->belongsTo(\App\Models\Usuario::class, 'motorista_id');
+        return $this->belongsTo(\App\Models\Motorista::class, 'motorista_id');
     }
 
-    // Relacionamento com Usuario
+    /**
+     * Relacionamento com Usuário (motorista para veículos PARTICULAR/MOTO)
+     */
     public function usuario()
     {
-        return $this->belongsTo(Usuario::class, 'usuario_id');
+        return $this->belongsTo(\App\Models\Usuario::class, 'usuario_id');
+    }
+
+    /**
+     * Relacionamento com veículos vinculados a este acesso (PARTICULAR/MOTO)
+     */
+    public function veiculos()
+    {
+        return $this->hasMany(\App\Models\Veiculo::class, 'acesso_id');
     }
 }

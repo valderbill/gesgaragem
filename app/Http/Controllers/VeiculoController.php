@@ -2,25 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Motorista; 
+use App\Models\Motorista;
 use App\Models\Veiculo;
 use App\Models\AcessoLiberado;
 use App\Models\RegistroVeiculo;
-use App\Models\Usuario;
 use Illuminate\Http\Request;
 
 class VeiculoController extends Controller
 {
     public function index()
     {
-        $veiculos = Veiculo::with('acesso.motorista')->get();
+        $veiculos = Veiculo::with(['acesso', 'motoristaOficial'])->get();
         return view('veiculos.index', compact('veiculos'));
     }
 
     public function create()
     {
         $acessos = AcessoLiberado::where('status', 1)->get();
-        $motoristasOficiais = Motorista::all(); // Corrigido para Motorista
+        $motoristasOficiais = Motorista::all();
         return view('veiculos.create', compact('acessos', 'motoristasOficiais'));
     }
 
@@ -28,10 +27,13 @@ class VeiculoController extends Controller
     {
         $termo = strtoupper($request->input('term'));
 
-        $veiculos = Veiculo::with('acesso.motorista')
+        $veiculos = Veiculo::with(['motoristaOficial', 'acesso'])
             ->where(function ($query) use ($termo) {
                 $query->where('placa', 'LIKE', "%{$termo}%")
-                    ->orWhereHas('acesso.motorista', function ($q) use ($termo) {
+                    ->orWhereHas('motoristaOficial', function ($q) use ($termo) {
+                        $q->whereRaw('UPPER(nome) LIKE ?', ["%{$termo}%"]);
+                    })
+                    ->orWhereHas('acesso', function ($q) use ($termo) {
                         $q->whereRaw('UPPER(nome) LIKE ?', ["%{$termo}%"]);
                     });
             })
@@ -39,11 +41,12 @@ class VeiculoController extends Controller
             ->get();
 
         $resultados = $veiculos->map(function ($veiculo) {
-            $motoristaId = null;
-            $motoristaNome = null;
-            if ($veiculo->tipo !== 'OFICIAL') {
-                $motoristaId = optional($veiculo->acesso)->motorista_id;
-                $motoristaNome = optional($veiculo->acesso->motorista)->nome;
+            if ($veiculo->tipo === 'OFICIAL') {
+                $motorista_id = $veiculo->motorista_id;
+                $motorista_nome = optional($veiculo->motoristaOficial)->nome;
+            } else {
+                $motorista_id = optional($veiculo->acesso)->usuario_id;
+                $motorista_nome = optional($veiculo->acesso)->nome;
             }
 
             return [
@@ -54,8 +57,8 @@ class VeiculoController extends Controller
                 'modelo' => $veiculo->modelo,
                 'cor' => $veiculo->cor,
                 'tipo' => $veiculo->tipo,
-                'motorista_entrada_id' => $motoristaId,
-                'motorista_nome' => $motoristaNome,
+                'motorista_id' => $motorista_id,
+                'motorista_nome' => $motorista_nome,
             ];
         });
 
@@ -84,7 +87,7 @@ class VeiculoController extends Controller
             'tipo' => 'required|in:OFICIAL,PARTICULAR,MOTO',
             'marca' => 'required|string|max:50',
             'acesso_id' => 'nullable|exists:acessos_liberados,id',
-            'motorista_id' => 'nullable|exists:motoristas_oficiais,id',
+            'motorista_id' => 'nullable|exists:motoristas,id',
         ], [
             'placa.regex' => 'Formato inválido para placa. Use ABC1234 (antigo) ou ABC1D23 (Mercosul).',
         ]);
@@ -95,7 +98,7 @@ class VeiculoController extends Controller
                 ->withInput();
         }
 
-        $data = $request->only([
+        Veiculo::create($request->only([
             'placa',
             'modelo',
             'cor',
@@ -103,9 +106,7 @@ class VeiculoController extends Controller
             'marca',
             'acesso_id',
             'motorista_id',
-        ]);
-
-        Veiculo::create($data);
+        ]));
 
         return redirect()->route('veiculos.index')->with('success', 'Veículo cadastrado com sucesso.');
     }
@@ -118,7 +119,7 @@ class VeiculoController extends Controller
     public function edit(Veiculo $veiculo)
     {
         $acessos = AcessoLiberado::where('status', 1)->get();
-        $motoristasOficiais = Motorista::all(); // Corrigido para Motorista
+        $motoristasOficiais = Motorista::all();
         return view('veiculos.edit', compact('veiculo', 'acessos', 'motoristasOficiais'));
     }
 
@@ -144,12 +145,12 @@ class VeiculoController extends Controller
             'tipo' => 'required|in:OFICIAL,PARTICULAR,MOTO',
             'marca' => 'required|string|max:50',
             'acesso_id' => 'nullable|exists:acessos_liberados,id',
-            'motorista_id' => 'nullable|exists:motoristas_oficiais,id',
+            'motorista_id' => 'nullable|exists:motoristas,id',
         ], [
             'placa.regex' => 'Formato inválido para placa. Use ABC1234 (antigo) ou ABC1D23 (Mercosul).',
         ]);
 
-        $data = $request->only([
+        $veiculo->update($request->only([
             'placa',
             'modelo',
             'cor',
@@ -157,35 +158,28 @@ class VeiculoController extends Controller
             'marca',
             'acesso_id',
             'motorista_id',
-        ]);
-
-        $veiculo->update($data);
+        ]));
 
         return redirect()->route('veiculos.index')->with('success', 'Veículo atualizado com sucesso.');
     }
 
     public function destroy(Veiculo $veiculo)
     {
-        $temRegistros = RegistroVeiculo::where('placa', $veiculo->placa)->exists();
-
-        if ($temRegistros) {
+        if (RegistroVeiculo::where('placa', $veiculo->placa)->exists()) {
             return redirect()->route('veiculos.index')
                 ->with('error', 'O veículo não pode ser excluído porque está vinculado a registros de entrada/saída.');
         }
 
         $veiculo->delete();
 
-        return redirect()->route('veiculos.index')
-            ->with('success', 'Veículo excluído com sucesso.');
+        return redirect()->route('veiculos.index')->with('success', 'Veículo excluído com sucesso.');
     }
 
     public function buscarPorPlaca($placa)
     {
         $placa = strtoupper($placa);
 
-        $veiculo = Veiculo::with('acesso.motorista')
-            ->where('placa', $placa)
-            ->first();
+        $veiculo = Veiculo::with(['motoristaOficial'])->where('placa', $placa)->first();
 
         if ($veiculo) {
             return response()->json([
@@ -194,8 +188,8 @@ class VeiculoController extends Controller
                 'tipo' => $veiculo->tipo,
                 'marca' => $veiculo->marca,
                 'acesso_id' => $veiculo->acesso_id,
-                'nome' => optional($veiculo->acesso->motorista ?? null)->nome,
-                'matricula' => optional($veiculo->acesso->motorista ?? null)->matricula,
+                'motorista_nome' => optional($veiculo->motoristaOficial)->nome,
+                'matricula' => optional($veiculo->motoristaOficial)->matricula,
             ]);
         }
 
@@ -209,14 +203,14 @@ class VeiculoController extends Controller
         $registro = RegistroVeiculo::where('placa', $placa)
             ->whereNotNull('motorista_entrada_id')
             ->latest('id')
-            ->with('motoristaEntrada')
+            ->with('motoristaOficialEntrada')
             ->first();
 
-        if ($registro && $registro->motoristaEntrada) {
+        if ($registro && $registro->motoristaOficialEntrada) {
             return response()->json([
-                'id' => $registro->motoristaEntrada->id,
-                'nome' => $registro->motoristaEntrada->nome,
-                'matricula' => $registro->motoristaEntrada->matricula,
+                'id' => $registro->motoristaOficialEntrada->id,
+                'nome' => $registro->motoristaOficialEntrada->nome,
+                'matricula' => $registro->motoristaOficialEntrada->matricula,
             ]);
         }
 
@@ -225,7 +219,7 @@ class VeiculoController extends Controller
 
     public function buscarPorId($id)
     {
-        $veiculo = Veiculo::with('acesso.motorista')->findOrFail($id);
+        $veiculo = Veiculo::with(['motoristaOficial'])->findOrFail($id);
 
         return response()->json([
             'placa' => $veiculo->placa,
@@ -233,7 +227,8 @@ class VeiculoController extends Controller
             'modelo' => $veiculo->modelo,
             'cor' => $veiculo->cor,
             'tipo' => $veiculo->tipo,
-            'motorista_id' => optional($veiculo->acesso)->motorista_id
+            'motorista_id' => $veiculo->motorista_id,
+            'motorista_nome' => optional($veiculo->motoristaOficial)->nome,
         ]);
     }
 }
