@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('styles')
-   <link rel="stylesheet" href="{{ asset('css/digital.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/digital.css') }}">
+    {{-- Inclua o Bootstrap para garantir o estilo da paginação --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -13,7 +15,6 @@
     {{-- Botões e Filtro --}}
     <div class="mb-3 d-flex justify-content-between">
         <a href="{{ route('registro_veiculos.create') }}" class="btn btn-primary">Novo Registro</a>
-
         <a href="{{ route('registro_veiculos.index', ['filtro' => 'sem_saida']) }}" title="Ocultar registros com saída">
             <i class="bi bi-x-circle"></i>
         </a>
@@ -80,16 +81,21 @@
                 <td>{{ $registro->nome_motorista_entrada ?? 'N/A' }}</td>
                 <td>
                     @if (!$registro->horario_saida)
-                        <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
-                            @csrf
-                            <select name="motorista_saida_id" class="form-control form-control-sm" required>
-                                <option value="" disabled selected>Selecione motorista</option>
-                                @foreach($motoristas as $motorista)
-                                    <option value="{{ $motorista->id }}">{{ $motorista->nome }}</option>
-                                @endforeach
-                            </select>
+                        @if ($registro->tipo === 'OFICIAL')
+                            <form id="form-saida-{{ $registro->id }}" action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
+                                @csrf
+                                <select name="motorista_saida_id" class="form-control form-control-sm" required>
+                                    <option value="" disabled selected>Selecione motorista</option>
+                                    @foreach($motoristas as $motorista)
+                                        <option value="{{ $motorista->id }}">{{ $motorista->nome }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        @else
+                            {{ $registro->nome_motorista_entrada ?? 'N/A' }}
+                        @endif
                     @else
-                        {{ $registro->motoristaSaida->nome ?? 'N/A' }}
+                        {{ $registro->motoristaSaida->nome ?? $registro->nome_motorista_entrada ?? 'N/A' }}
                     @endif
                 </td>
                 <td>{{ $registro->quantidade_passageiros ?? 0 }}</td>
@@ -99,11 +105,21 @@
                 <td>{{ $registro->usuarioSaida->nome ?? 'N/A' }}</td>
                 <td>
                     @if (!$registro->horario_saida)
-                            <button type="submit" class="btn btn-success btn-sm mt-1"
+                        @if ($registro->tipo === 'OFICIAL')
+                            <button type="submit" form="form-saida-{{ $registro->id }}" class="btn btn-success btn-sm mt-1"
                                     onclick="return confirm('Confirmar registro de saída deste veículo?')">
                                 Registrar Saída
                             </button>
-                        </form>
+                        @else
+                            <form action="{{ route('registro_veiculos.registrar_saida', $registro->id) }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="motorista_saida_id" value="{{ $registro->motorista_entrada_id }}">
+                                <button type="submit" class="btn btn-success btn-sm mt-1"
+                                        onclick="return confirm('Confirmar registro de saída deste veículo?')">
+                                    Registrar Saída
+                                </button>
+                            </form>
+                        @endif
                     @else
                         <button class="btn btn-secondary btn-sm" disabled>Saída Registrada</button>
                     @endif
@@ -113,8 +129,10 @@
         </tbody>
     </table>
 
-    {{-- Paginação com filtro mantido --}}
-    {{ $registros->withQueryString()->links() }}
+    {{-- Paginação com Bootstrap --}}
+    <div class="d-flex justify-content-center">
+        {{ $registros->withQueryString()->links('pagination::bootstrap-4') }}
+    </div>
 
     {{-- Canvas para gráfico --}}
     <canvas id="graficoVagas" style="max-width:600px; margin: 20px auto; display: block;"></canvas>

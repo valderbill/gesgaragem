@@ -69,6 +69,7 @@ class RegistroVeiculoController extends Controller
             'cor' => 'required|string|max:20',
             'tipo' => 'required|in:OFICIAL,PARTICULAR,MOTO',
             'motorista_saida_id' => 'nullable|exists:motoristas_oficiais,id',
+            'motorista_saida_outros_id' => 'nullable|exists:usuarios,id', // ajuste aqui conforme sua tabela
             'horario_saida' => 'nullable|date',
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
@@ -95,6 +96,8 @@ class RegistroVeiculoController extends Controller
 
         if ($request->tipo === 'OFICIAL') {
             $motoristaEntradaId = $request->motorista_entrada_id;
+            $motoristaSaidaId = $request->motorista_saida_id;
+            $motoristaSaidaOutrosId = null;
         } else {
             $motoristaEntradaId = $veiculo->acesso->usuario_id ?? null;
             if (!$motoristaEntradaId) {
@@ -102,6 +105,8 @@ class RegistroVeiculoController extends Controller
                     'motorista_entrada_id' => 'Veículo PARTICULAR/MOTO precisa estar vinculado a um usuário através da tabela de acessos liberados.'
                 ]);
             }
+            $motoristaSaidaId = null;
+            $motoristaSaidaOutrosId = $motoristaEntradaId;
         }
 
         RegistroVeiculo::create([
@@ -112,7 +117,8 @@ class RegistroVeiculoController extends Controller
             'cor' => $request->cor,
             'tipo' => $request->tipo,
             'motorista_entrada_id' => $motoristaEntradaId,
-            'motorista_saida_id' => $request->motorista_saida_id,
+            'motorista_saida_id' => $motoristaSaidaId,
+            'motorista_saida_outros_id' => $motoristaSaidaOutrosId,
             'horario_saida' => $request->horario_saida,
             'usuario_saida_id' => $request->usuario_saida_id,
             'estacionamento_id' => $request->estacionamento_id,
@@ -159,6 +165,7 @@ class RegistroVeiculoController extends Controller
             'cor' => 'required|string|max:20',
             'tipo' => 'required|in:OFICIAL,PARTICULAR,MOTO',
             'motorista_saida_id' => 'nullable|exists:motoristas_oficiais,id',
+            'motorista_saida_outros_id' => 'nullable|exists:usuarios,id', // ajuste aqui conforme sua tabela
             'horario_saida' => 'nullable|date',
             'usuario_saida_id' => 'nullable|exists:usuarios,id',
             'estacionamento_id' => 'required|exists:estacionamentos,id',
@@ -175,6 +182,8 @@ class RegistroVeiculoController extends Controller
 
         if ($request->tipo === 'OFICIAL') {
             $motoristaEntradaId = $request->motorista_entrada_id;
+            $motoristaSaidaId = $request->motorista_saida_id;
+            $motoristaSaidaOutrosId = null;
         } else {
             $motoristaEntradaId = $veiculo->acesso->usuario_id ?? null;
             if (!$motoristaEntradaId) {
@@ -182,22 +191,24 @@ class RegistroVeiculoController extends Controller
                     'motorista_entrada_id' => 'Veículo PARTICULAR/MOTO precisa estar vinculado a um usuário através da tabela de acessos liberados.'
                 ]);
             }
-            $request->merge(['motorista_entrada_id' => $motoristaEntradaId]);
+            $motoristaSaidaId = null;
+            $motoristaSaidaOutrosId = $motoristaEntradaId;
         }
 
-        $registro->update($request->only([
-            'veiculo_id',
-            'marca',
-            'modelo',
-            'cor',
-            'tipo',
-            'motorista_entrada_id',
-            'motorista_saida_id',
-            'horario_saida',
-            'usuario_saida_id',
-            'estacionamento_id',
-            'quantidade_passageiros',
-        ]));
+        $registro->update([
+            'veiculo_id' => $request->veiculo_id,
+            'marca' => $request->marca,
+            'modelo' => $request->modelo,
+            'cor' => $request->cor,
+            'tipo' => $request->tipo,
+            'motorista_entrada_id' => $motoristaEntradaId,
+            'motorista_saida_id' => $motoristaSaidaId,
+            'motorista_saida_outros_id' => $motoristaSaidaOutrosId,
+            'horario_saida' => $request->horario_saida,
+            'usuario_saida_id' => $request->usuario_saida_id,
+            'estacionamento_id' => $request->estacionamento_id,
+            'quantidade_passageiros' => $request->quantidade_passageiros,
+        ]);
 
         return redirect()->route('registro_veiculos.index')->with('success', 'Registro atualizado com sucesso.');
     }
@@ -219,15 +230,25 @@ class RegistroVeiculoController extends Controller
                 ->with('error', 'Saída já registrada para este veículo.');
         }
 
-        $request->validate([
-            'motorista_saida_id' => 'required|exists:motoristas_oficiais,id',
-        ]);
-
-        $registro->update([
-            'horario_saida' => now(),
-            'usuario_saida_id' => Auth::id(),
-            'motorista_saida_id' => $request->motorista_saida_id,
-        ]);
+        if ($registro->tipo === 'OFICIAL') {
+            $request->validate([
+                'motorista_saida_id' => 'required|exists:motoristas_oficiais,id',
+            ]);
+            $registro->update([
+                'horario_saida' => now(),
+                'usuario_saida_id' => Auth::id(),
+                'motorista_saida_id' => $request->motorista_saida_id,
+                'motorista_saida_outros_id' => null,
+            ]);
+        } else {
+            // PARTICULAR/MOTO: salva no campo motorista_saida_outros_id
+            $registro->update([
+                'horario_saida' => now(),
+                'usuario_saida_id' => Auth::id(),
+                'motorista_saida_id' => null,
+                'motorista_saida_outros_id' => $registro->motorista_entrada_id,
+            ]);
+        }
 
         return redirect()->route('registro_veiculos.index')->with('success', 'Saída registrada com sucesso!');
     }

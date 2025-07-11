@@ -16,7 +16,8 @@ class MotoristaController extends Controller
 
     public function create()
     {
-        return view('motorista.create');
+        $motoristas = Motorista::all(); // Adicionado para uso em selects
+        return view('motorista.create', compact('motoristas'));
     }
 
     public function store(Request $request)
@@ -33,7 +34,7 @@ class MotoristaController extends Controller
             'nome' => $request->nome,
             'matricula' => $request->matricula,
             'foto' => $fotoPath,
-            'ativo' => true, // Sempre inicia como ativo
+            'ativo' => true,
         ]);
 
         return redirect()->route('motoristas.index')->with('success', 'Motorista cadastrado com sucesso.');
@@ -75,7 +76,6 @@ class MotoristaController extends Controller
         return redirect()->route('motoristas.index')->with('success', 'Motorista atualizado com sucesso.');
     }
 
-    // Novo método para ativar/inativar
     public function alternarStatus($id)
     {
         $motorista = Motorista::findOrFail($id);
@@ -85,4 +85,4 @@ class MotoristaController extends Controller
         return redirect()->route('motoristas.index')
             ->with('success', 'Status do motorista atualizado com sucesso!');
     }
-}
+} 
