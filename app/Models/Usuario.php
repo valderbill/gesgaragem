@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Perfil;
+use App\Models\Mensagem;
+use App\Models\AcessoLiberado;
 
 class Usuario extends Authenticatable
 {
@@ -29,33 +32,52 @@ class Usuario extends Authenticatable
         'ativo' => 'boolean',
     ];
 
+    /**
+     * Relacionamento com o perfil do usuário
+     */
     public function perfil()
     {
         return $this->belongsTo(Perfil::class);
     }
 
-    // Laravel vai usar a coluna 'password' para autenticar
+    /**
+     * Define qual atributo o Laravel usa para autenticação
+     */
     public function getAuthPassword()
     {
         return $this->password;
     }
 
-    // Permite usar 'password' no cadastro, salvando em 'password'
+    /**
+     * Mutator para criptografar a senha automaticamente
+     */
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = bcrypt($value);
     }
 
-    // ✅ Adicionado: mensagens não lidas usando tabela pivot
-    
-public function mensagensNaoLidas()
-{
-    return $this->belongsToMany(Mensagem::class, 'mensagem_destinatarios', 'destinatario_id', 'mensagem_id')
-                ->wherePivot('lida', false);
-}
+    /**
+     * 🔠 Mutator para salvar o nome sempre em MAIÚSCULAS
+     */
+    public function setNomeAttribute($value)
+    {
+        $this->attributes['nome'] = mb_strtoupper($value, 'UTF-8');
+    }
 
-public function acessosLiberados()
-{
-    return $this->hasMany(AcessoLiberado::class, 'usuario_id');
-}
+    /**
+     * Relacionamento: mensagens não lidas via tabela pivot
+     */
+    public function mensagensNaoLidas()
+    {
+        return $this->belongsToMany(Mensagem::class, 'mensagem_destinatarios', 'destinatario_id', 'mensagem_id')
+                    ->wherePivot('lida', false);
+    }
+
+    /**
+     * Relacionamento: acessos liberados
+     */
+    public function acessosLiberados()
+    {
+        return $this->hasMany(AcessoLiberado::class, 'usuario_id');
+    }
 }

@@ -5,7 +5,7 @@
 @section('content')
     <h1>Cadastrar Veículo</h1>
 
-    {{-- Exibe mensagens de erro de validação --}}
+    {{-- Mensagens de erro --}}
     @if ($errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0">
@@ -16,7 +16,7 @@
         </div>
     @endif
 
-    {{-- Exibe mensagem de erro genérica --}}
+    {{-- Mensagem de erro genérica --}}
     @if (session('error'))
         <div class="alert alert-danger">
             {{ session('error') }}

@@ -11,15 +11,19 @@
     <div class="card mb-3">
         <div class="card-body">
             <p><strong>ID:</strong> {{ $ocorrencia->id }}</p>
-            <p><strong>Placa:</strong> {{ $ocorrencia->placa }}</p>
             <p><strong>Ocorrência:</strong> {{ $ocorrencia->ocorrencia }}</p>
-            <p><strong>Data/Hora:</strong> {{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }}</p>               
-            <p><strong>Usuário:</strong> {{ optional($ocorrencia->usuario)->name ?? 'Não informado' }}</p>
+            <p><strong>Data/Hora:</strong> {{ $ocorrencia->horario->format('d/m/Y H:i') }}</p>
+            <p><strong>Usuário:</strong> {{ optional($ocorrencia->usuario)->nome ?? 'Não informado' }}</p>
         </div>
     </div>
 
-    <a href="{{ route('acompanhamentos.create', $ocorrencia->id) }}" class="btn btn-success">Adicionar Acompanhamento</a>
-    <a href="{{ route('ocorrencias.index') }}" class="btn btn-secondary">Voltar</a>
+    <a href="{{ route('acompanhamentos.create', $ocorrencia->id) }}" class="btn btn-success">
+        Adicionar Acompanhamento
+    </a>
+
+    <a href="{{ route('ocorrencias.index') }}" class="btn btn-secondary">
+        Voltar
+    </a>
 
     <hr>
 
@@ -31,7 +35,7 @@
         <ul class="list-group">
             @foreach($ocorrencia->acompanhamentos as $acompanhamento)
                 <li class="list-group-item">
-                    <strong>{{ \Carbon\Carbon::parse($acompanhamento->created_at)->format('d/m/Y H:i') }}</strong> - 
+                    <strong>{{ $acompanhamento->created_at->format('d/m/Y H:i') }}</strong> –
                     {{ $acompanhamento->descricao }}
                 </li>
             @endforeach

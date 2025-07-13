@@ -14,12 +14,28 @@ class AcessoLiberado extends Model
         'nome',
         'matricula',
         'motorista_id',
-        'usuario_id', // <- Importante garantir que esse campo exista na tabela!
+        'usuario_id',
         'status',
     ];
 
     /**
-     * (Opcional) Relacionamento com Motorista oficial (caso exista vínculo)
+     * 🔠 Mutator: Nome em MAIÚSCULAS
+     */
+    public function setNomeAttribute($value)
+    {
+        $this->attributes['nome'] = mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
+     * 🔠 Mutator: Matrícula em MAIÚSCULAS (caso use letras)
+     */
+    public function setMatriculaAttribute($value)
+    {
+        $this->attributes['matricula'] = mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
+     * Relacionamento com Motorista oficial
      */
     public function motorista()
     {
@@ -35,7 +51,7 @@ class AcessoLiberado extends Model
     }
 
     /**
-     * Relacionamento com veículos vinculados a este acesso (PARTICULAR/MOTO)
+     * Relacionamento com veículos vinculados a este acesso
      */
     public function veiculos()
     {

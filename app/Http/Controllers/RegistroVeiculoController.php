@@ -262,13 +262,19 @@ class RegistroVeiculoController extends Controller
     {
         $veiculoId = $request->input('veiculo_id');
         $tipo = $request->input('tipo');
+        $termo = $request->input('term'); // termo enviado pelo select2
         $results = [];
 
         if ($tipo === 'OFICIAL') {
-            $motoristas = DB::table('motoristas_oficiais')
-                ->where('ativo', true)
-                ->limit(10)
-                ->get();
+            $query = DB::table('motoristas_oficiais')
+                ->where('ativo', true);
+
+            if ($termo) {
+                // Busca case-insensitive no nome
+                $query->whereRaw('LOWER(nome) LIKE ?', ['%' . strtolower($termo) . '%']);
+            }
+
+            $motoristas = $query->limit(10)->get();
 
             $results = $motoristas->map(fn($m) => [
                 'id' => $m->id,
@@ -277,10 +283,13 @@ class RegistroVeiculoController extends Controller
         } else {
             $veiculo = Veiculo::with('acesso')->find($veiculoId);
             if ($veiculo && $veiculo->acesso) {
-                $results[] = [
-                    'id' => $veiculo->acesso->usuario_id,
-                    'nome' => $veiculo->acesso->nome,
-                ];
+                // Retorna só se o nome do acesso conter o termo (ignora case)
+                if (!$termo || stripos($veiculo->acesso->nome, $termo) !== false) {
+                    $results[] = [
+                        'id' => $veiculo->acesso->usuario_id,
+                        'nome' => $veiculo->acesso->nome,
+                    ];
+                }
             }
         }
 

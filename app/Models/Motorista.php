@@ -15,4 +15,12 @@ class Motorista extends Model
         'matricula',
         'foto',
     ];
+
+    /**
+     * 🔠 Mutator: converte o nome para MAIÚSCULAS automaticamente
+     */
+    public function setNomeAttribute($value)
+    {
+        $this->attributes['nome'] = mb_strtoupper($value, 'UTF-8');
+    }
 }

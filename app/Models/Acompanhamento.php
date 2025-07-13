@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Ocorrencia;
+use App\Models\Usuario;
 
 class Acompanhamento extends Model
 {
@@ -25,6 +27,6 @@ class Acompanhamento extends Model
 
     public function usuario()
     {
-        return $this->belongsTo(User::class, 'usuario_id');
+        return $this->belongsTo(Usuario::class, 'usuario_id');
     }
 }

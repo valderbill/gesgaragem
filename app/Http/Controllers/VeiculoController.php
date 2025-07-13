@@ -25,22 +25,25 @@ class VeiculoController extends Controller
 
     public function buscar(Request $request)
     {
-        $termo = strtoupper($request->input('term'));
+        $termo = $request->input('term');
 
         $veiculos = Veiculo::with(['motoristaOficial', 'acesso'])
             ->where(function ($query) use ($termo) {
-                $query->where('placa', 'LIKE', "%{$termo}%")
+                $query->where('placa', 'ILIKE', "%{$termo}%")
                     ->orWhereHas('motoristaOficial', function ($q) use ($termo) {
-                        $q->whereRaw('UPPER(nome) LIKE ?', ["%{$termo}%"]);
+                        $q->where('nome', 'ILIKE', "%{$termo}%");
                     })
                     ->orWhereHas('acesso', function ($q) use ($termo) {
-                        $q->whereRaw('UPPER(nome) LIKE ?', ["%{$termo}%"]);
+                        $q->where('nome', 'ILIKE', "%{$termo}%");
                     });
             })
             ->limit(10)
             ->get();
 
         $resultados = $veiculos->map(function ($veiculo) {
+            $motorista_id = null;
+            $motorista_nome = null;
+
             if ($veiculo->tipo === 'OFICIAL') {
                 $motorista_id = $veiculo->motorista_id;
                 $motorista_nome = optional($veiculo->motoristaOficial)->nome;
@@ -93,9 +96,7 @@ class VeiculoController extends Controller
         ]);
 
         if (Veiculo::where('placa', $request->placa)->exists()) {
-            return back()
-                ->withErrors(['placa' => 'Veículo já cadastrado com essa placa.'])
-                ->withInput();
+            return back()->withErrors(['placa' => 'Veículo já cadastrado com essa placa.'])->withInput();
         }
 
         Veiculo::create($request->only([
@@ -166,8 +167,7 @@ class VeiculoController extends Controller
     public function destroy(Veiculo $veiculo)
     {
         if (RegistroVeiculo::where('placa', $veiculo->placa)->exists()) {
-            return redirect()->route('veiculos.index')
-                ->with('error', 'O veículo não pode ser excluído porque está vinculado a registros de entrada/saída.');
+            return redirect()->route('veiculos.index')->with('error', 'O veículo não pode ser excluído porque está vinculado a registros de entrada/saída.');
         }
 
         $veiculo->delete();
