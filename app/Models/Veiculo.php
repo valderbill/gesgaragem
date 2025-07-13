@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class Veiculo extends Model
 {
+    // Desativa timestamps automáticos (created_at e updated_at)
     public $timestamps = false;
 
     protected $fillable = [
@@ -14,9 +17,25 @@ class Veiculo extends Model
         'cor',
         'tipo',
         'marca',
-        'acesso_id',      // Para veículos PARTICULAR/MOTO
-        'motorista_id',   // Para veículos OFICIAL
+        'acesso_id',
+        'motorista_id',
+        'criado_por',
+        'criado_em',
     ];
+
+    /**
+     * Define eventos para setar criador e data de criação automaticamente
+     */
+    protected static function booted()
+    {
+        static::creating(function ($veiculo) {
+            if (Auth::check()) {
+                $veiculo->criado_por = Auth::id();
+            }
+
+            $veiculo->criado_em = Carbon::now();
+        });
+    }
 
     /**
      * Relacionamento com AcessoLiberado (PARTICULAR/MOTO)
@@ -34,7 +53,11 @@ class Veiculo extends Model
         return $this->belongsTo(Motorista::class, 'motorista_id');
     }
 
-    // A função abaixo se tornou desnecessária
-    // porque agora o nome vem direto de acessos_liberados.nome
-    // public function usuarioVinculado() { ... }
+    /**
+     * Relacionamento com o usuário que criou o veículo
+     */
+    public function criador()
+    {
+        return $this->belongsTo(\App\Models\Usuario::class, 'criado_por');
+    }
 }

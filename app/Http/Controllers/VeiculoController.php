@@ -7,6 +7,7 @@ use App\Models\Veiculo;
 use App\Models\AcessoLiberado;
 use App\Models\RegistroVeiculo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VeiculoController extends Controller
 {
@@ -99,7 +100,7 @@ class VeiculoController extends Controller
             return back()->withErrors(['placa' => 'Veículo já cadastrado com essa placa.'])->withInput();
         }
 
-        Veiculo::create($request->only([
+        $data = $request->only([
             'placa',
             'modelo',
             'cor',
@@ -107,7 +108,12 @@ class VeiculoController extends Controller
             'marca',
             'acesso_id',
             'motorista_id',
-        ]));
+        ]);
+
+        $data['criado_por'] = Auth::id();
+        $data['criado_em'] = now();
+
+        Veiculo::create($data);
 
         return redirect()->route('veiculos.index')->with('success', 'Veículo cadastrado com sucesso.');
     }
