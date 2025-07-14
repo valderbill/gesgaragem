@@ -1,13 +1,15 @@
 @extends('layouts.app')
 
+@section('styles')
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@endsection
+
 @section('content')
 <div class="container">
     <h2>Relatório de Veículos</h2>
 
-    <a href="{{ route('relatorios.veiculos.create') }}" class="btn btn-success mb-3">Novo Relatório</a>
-
     {{-- Botão de Imprimir com filtros aplicados --}}
-    <a href="{{ route('relatorios.veiculos.exportar', request()->query()) }}" target="_blank" class="btn btn-secondary mb-3 ms-2">Imprimir PDF</a>
+    <a href="{{ route('relatorios.veiculos.exportar', request()->query()) }}" target="_blank" class="btn btn-secondary mb-3">Imprimir PDF</a>
 
     <form method="GET" class="row g-3 mb-4">
         <div class="col-md-2">
@@ -66,7 +68,7 @@
                 <th>Tipo</th>
                 <th>Motorista</th>
                 <th>Data de Cadastro</th>
-                <th>Criado Por</th> {{-- NOVO --}}
+                <th>Criado Por</th>
             </tr>
         </thead>
         <tbody>
@@ -101,8 +103,9 @@
         </tbody>
     </table>
 
+    {{-- Paginação com estilo Bootstrap --}}
     <div class="d-flex justify-content-center">
-        {{ $veiculos->appends(request()->query())->links() }}
+        {{ $veiculos->appends(request()->query())->links('pagination::bootstrap-4') }}
     </div>
 </div>
 @endsection

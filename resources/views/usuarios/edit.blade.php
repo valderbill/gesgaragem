@@ -54,6 +54,34 @@
             </label>
         </div>
 
+        {{-- Informações de auditoria --}}
+        <div class="mb-3">
+            <label class="form-label">Criado por:</label>
+            <p class="form-control-plaintext">{{ $usuario->criador->nome ?? 'N/A' }}</p>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Última Ativação:</label>
+            <p class="form-control-plaintext">
+                @if($usuario->data_ativacao)
+                    {{ $usuario->data_ativacao->format('d/m/Y H:i') }} por {{ $usuario->ativadoPor->nome ?? 'N/A' }}
+                @else
+                    N/A
+                @endif
+            </p>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Última Inativação:</label>
+            <p class="form-control-plaintext">
+                @if($usuario->data_inativacao)
+                    {{ $usuario->data_inativacao->format('d/m/Y H:i') }} por {{ $usuario->inativadoPor->nome ?? 'N/A' }}
+                @else
+                    N/A
+                @endif
+            </p>
+        </div>
+
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <button type="submit" class="btn btn-primary">Salvar</button>

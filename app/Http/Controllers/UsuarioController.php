@@ -6,12 +6,13 @@ use App\Models\Usuario;
 use App\Models\Perfil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class UsuarioController extends Controller
 {
     public function index()
     {
-        $usuarios = Usuario::with('perfil')->get();
+        $usuarios = Usuario::with(['perfil', 'criador', 'ativadoPor', 'inativadoPor'])->get();
         return view('usuarios.index', compact('usuarios'));
     }
 
@@ -28,16 +29,23 @@ class UsuarioController extends Controller
             'matricula' => 'required|string|max:100|unique:usuarios,matricula',
             'password' => 'required|string|min:6',
             'perfil_id' => 'required|exists:perfis,id',
-            'ativo' => 'required|boolean',
+            'ativo' => 'sometimes|boolean',
         ]);
 
-        Usuario::create([
-            'nome' => $request->nome,
-            'matricula' => $request->matricula,
-            'password' => $request->password, // Aqui só passe o password, o mutator do model já faz o hash
-            'perfil_id' => $request->perfil_id,
-            'ativo' => $request->ativo,
-        ]);
+        $usuario = new Usuario();
+        $usuario->nome = $request->nome;
+        $usuario->matricula = $request->matricula;
+        $usuario->password = $request->password; 
+        $usuario->perfil_id = $request->perfil_id;
+        $usuario->ativo = $request->has('ativo') ? true : false;
+        $usuario->criado_por_id = Auth::id();
+
+        if ($usuario->ativo) {
+            $usuario->data_ativacao = now();
+            $usuario->ativado_por_id = Auth::id();
+        }
+
+        $usuario->save();
 
         return redirect()->route('usuarios.index')->with('success', 'Usuário criado com sucesso.');
     }
@@ -59,17 +67,40 @@ class UsuarioController extends Controller
             'nome' => 'required|string|max:255',
             'matricula' => 'required|string|max:100|unique:usuarios,matricula,' . $usuario->id,
             'perfil_id' => 'required|exists:perfis,id',
-            'ativo' => 'required|boolean',
+            'ativo' => 'sometimes|boolean',
+            'password' => 'nullable|string|min:6',
         ]);
 
         $usuario->nome = $request->nome;
         $usuario->matricula = $request->matricula;
         $usuario->perfil_id = $request->perfil_id;
-        $usuario->ativo = $request->ativo;
+
+        // Verifica mudança de status
+        $novoStatus = $request->has('ativo') ? true : false;
+        if ($usuario->ativo !== $novoStatus) {
+            $usuario->ativo = $novoStatus;
+
+            if ($novoStatus) {
+                // Ativado
+                $usuario->data_ativacao = now();
+                $usuario->ativado_por_id = Auth::id();
+
+                // Limpar inativação
+                $usuario->data_inativacao = null;
+                $usuario->inativado_por_id = null;
+            } else {
+                // Inativado
+                $usuario->data_inativacao = now();
+                $usuario->inativado_por_id = Auth::id();
+
+                // Limpar ativação
+                $usuario->data_ativacao = null;
+                $usuario->ativado_por_id = null;
+            }
+        }
 
         if ($request->filled('password')) {
-            $request->validate(['password' => 'string|min:6']);
-            $usuario->password = $request->password; // mutator do model vai aplicar bcrypt
+            $usuario->password = $request->password; 
         }
 
         $usuario->save();
@@ -81,8 +112,24 @@ class UsuarioController extends Controller
     {
         $request->validate(['ativo' => 'required|boolean']);
 
-        $usuario->ativo = $request->ativo;
-        $usuario->save();
+        $novoStatus = $request->ativo;
+        if ($usuario->ativo !== $novoStatus) {
+            $usuario->ativo = $novoStatus;
+
+            if ($novoStatus) {
+                $usuario->data_ativacao = now();
+                $usuario->ativado_por_id = Auth::id();
+                $usuario->data_inativacao = null;
+                $usuario->inativado_por_id = null;
+            } else {
+                $usuario->data_inativacao = now();
+                $usuario->inativado_por_id = Auth::id();
+                $usuario->data_ativacao = null;
+                $usuario->ativado_por_id = null;
+            }
+
+            $usuario->save();
+        }
 
         $status = $usuario->ativo ? 'ativado' : 'inativado';
 
@@ -94,7 +141,7 @@ class UsuarioController extends Controller
         $usuario = Usuario::findOrFail($id);
         $novaSenha = $usuario->matricula;
 
-        $usuario->password = $novaSenha; // model aplica bcrypt
+        $usuario->password = $novaSenha; 
         $usuario->save();
 
         return redirect()

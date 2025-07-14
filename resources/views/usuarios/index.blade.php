@@ -30,19 +30,35 @@
     </script>
 
     <style>
-        .w-10 { width: 10%; }
-        .w-15 { width: 15%; }
+    .w-8 { width: 8%; }
+    .w-10 { width: 10%; }
+    .w-12 { width: 12%; }
+    .w-13 { width: 13%; }
+    .w-14 { width: 14%; }
+    .w-15 { width: 15%; }
+    .w-18 { width: 18%; }
+    .w-20 { width: 20%; }
     </style>
+
 
     <table class="table table-bordered align-middle" style="table-layout: fixed;">
         <thead>
-            <tr>
-                <th style="width: 35%;">Nome</th>
-                <th class="w-15">Matrícula</th>
-                <th class="w-15">Perfil</th>
-                <th class="w-15">Ações</th>
-                <th class="w-15">Status</th>
-            </tr>
+           <thead>
+    <thead>
+    <tr>
+        <th class="w-20">Nome</th>
+        <th class="w-10">Matrícula</th>
+        <th class="w-10">Perfil</th>
+        <th class="w-10">Criado por</th>
+        <th class="w-13">Ativado/Inativado por</th>
+        <th class="w-14">Data</th>
+        <th class="w-18">Ações</th>
+        <th class="w-15">Status</th>
+    </tr>
+</thead>
+
+</thead>
+
         </thead>
         <tbody>
             @foreach($usuarios as $usuario)
@@ -50,6 +66,23 @@
                     <td style="padding: 0.5rem;">{{ $usuario->nome }}</td>
                     <td style="padding: 0.3rem; white-space: nowrap;">{{ $usuario->matricula }}</td>
                     <td style="padding: 0.3rem; white-space: nowrap;">{{ $usuario->perfil->nome ?? 'N/A' }}</td>
+                    <td style="padding: 0.3rem; white-space: nowrap;">{{ $usuario->criador->nome ?? 'N/A' }}</td>
+                    <td style="padding: 0.3rem; white-space: nowrap;">
+                        @if($usuario->ativo)
+                            {{ $usuario->ativadoPor->nome ?? 'N/A' }}
+                        @else
+                            {{ $usuario->inativadoPor->nome ?? 'N/A' }}
+                        @endif
+                    </td>
+                    <td style="padding: 0.3rem; white-space: nowrap;">
+                        @if($usuario->ativo)
+                            Ativado em:<br>
+                            {{ $usuario->data_ativacao ? \Carbon\Carbon::parse($usuario->data_ativacao)->format('d/m/Y H:i') : 'N/A' }}
+                        @else
+                            Inativado em:<br>
+                            {{ $usuario->data_inativacao ? \Carbon\Carbon::parse($usuario->data_inativacao)->format('d/m/Y H:i') : 'N/A' }}
+                        @endif
+                    </td>
                     <td style="padding: 0.3rem; white-space: nowrap;">
                         <a href="{{ route('usuarios.show', $usuario->id) }}" class="btn btn-info btn-sm px-2 py-1">Ver</a>
                         <a href="{{ route('usuarios.edit', $usuario->id) }}" class="btn btn-warning btn-sm px-2 py-1">Editar</a>

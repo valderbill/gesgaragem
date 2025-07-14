@@ -16,6 +16,7 @@ use App\Http\Controllers\PainelController;
 use App\Http\Controllers\EstacionamentoController;
 use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\RelatorioVeiculoController;
+use App\Http\Controllers\RelatorioUsuarioController;
 
 // Página pública
 Route::get('/', function () {
@@ -133,15 +134,13 @@ Route::get('/teste', function () {
 Route::resource('mensagens', MensagemController::class);
 
 // ✅ Rotas de Relatórios de Veículos
-Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
+    Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
     Route::get('/', [RelatorioVeiculoController::class, 'index'])->name('index');
-    Route::get('/create', [RelatorioVeiculoController::class, 'create'])->name('create');
-    Route::post('/', [RelatorioVeiculoController::class, 'store'])->name('store');
-
-    // ✅ Rota para exportar PDF com filtros aplicados — precisa vir antes das rotas com {relatorio}
     Route::get('/exportar', [RelatorioVeiculoController::class, 'exportar'])->name('exportar');
-
     Route::get('/{relatorio}', [RelatorioVeiculoController::class, 'show'])->name('show');
-    Route::get('/{relatorio}/edit', [RelatorioVeiculoController::class, 'edit'])->name('edit');
-    Route::put('/{relatorio}', [RelatorioVeiculoController::class, 'update'])->name('update');
+});
+
+Route::prefix('relatorios/usuarios')->name('relatorios.usuarios.')->group(function () {
+    Route::get('/', [RelatorioUsuarioController::class, 'index'])->name('index');
+    Route::get('/exportar', [RelatorioUsuarioController::class, 'exportar'])->name('exportar');
 });

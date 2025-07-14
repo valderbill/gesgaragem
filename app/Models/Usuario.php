@@ -21,6 +21,12 @@ class Usuario extends Authenticatable
         'password',
         'perfil_id',
         'ativo',
+        // Campos que são definidos automaticamente mas podem ser preenchidos no controller
+        'criado_por_id',
+        'ativado_por_id',
+        'data_ativacao',
+        'inativado_por_id',
+        'data_inativacao',
     ];
 
     protected $hidden = [
@@ -30,26 +36,12 @@ class Usuario extends Authenticatable
 
     protected $casts = [
         'ativo' => 'boolean',
+        'data_ativacao' => 'datetime',
+        'data_inativacao' => 'datetime',
     ];
 
     /**
-     * Relacionamento com o perfil do usuário
-     */
-    public function perfil()
-    {
-        return $this->belongsTo(Perfil::class);
-    }
-
-    /**
-     * Define qual atributo o Laravel usa para autenticação
-     */
-    public function getAuthPassword()
-    {
-        return $this->password;
-    }
-
-    /**
-     * Mutator para criptografar a senha automaticamente
+     * 🔒 Senha criptografada
      */
     public function setPasswordAttribute($value)
     {
@@ -57,7 +49,7 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * 🔠 Mutator para salvar o nome sempre em MAIÚSCULAS
+     * 🆙 Nome sempre em MAIÚSCULAS
      */
     public function setNomeAttribute($value)
     {
@@ -65,7 +57,15 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Relacionamento: mensagens não lidas via tabela pivot
+     * 🔐 Perfil do usuário
+     */
+    public function perfil()
+    {
+        return $this->belongsTo(Perfil::class);
+    }
+
+    /**
+     * 📨 Mensagens não lidas (relacionamento com pivot)
      */
     public function mensagensNaoLidas()
     {
@@ -74,10 +74,42 @@ class Usuario extends Authenticatable
     }
 
     /**
-     * Relacionamento: acessos liberados
+     * ✅ Acessos liberados
      */
     public function acessosLiberados()
     {
         return $this->hasMany(AcessoLiberado::class, 'usuario_id');
+    }
+
+    /**
+     * 👤 Usuário que criou este usuário
+     */
+    public function criador()
+    {
+        return $this->belongsTo(self::class, 'criado_por_id');
+    }
+
+    /**
+     * ✅ Usuário que ativou este usuário
+     */
+    public function ativadoPor()
+    {
+        return $this->belongsTo(self::class, 'ativado_por_id');
+    }
+
+    /**
+     * 🚫 Usuário que inativou este usuário
+     */
+    public function inativadoPor()
+    {
+        return $this->belongsTo(self::class, 'inativado_por_id');
+    }
+
+    /**
+     * 🔑 Autenticação: qual campo usar como senha
+     */
+    public function getAuthPassword()
+    {
+        return $this->password;
     }
 }
