@@ -17,7 +17,8 @@ use App\Http\Controllers\EstacionamentoController;
 use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\RelatorioVeiculoController;
 use App\Http\Controllers\RelatorioUsuarioController;
-use App\Http\Controllers\RelatorioRegistroVeiculoController; // ✅ Adicionado
+use App\Http\Controllers\RelatorioRegistroVeiculoController;
+use App\Http\Controllers\RelatorioOcorrenciaController; 
 
 // Página pública
 Route::get('/', function () {
@@ -65,17 +66,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar');
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
 Route::get('/veiculos/{id}/buscar', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId');
-
-// ✅ Buscar motorista anterior por placa
 Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
-
-// ✅ Buscar veículo por placa (API para AJAX)
 Route::get('/api/veiculo-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca']);
-
-// ✅ Rota para buscar acessos liberados (autocomplete nome/matrícula)
 Route::get('/acessos/buscar', [AcessoLiberadoController::class, 'buscar'])->name('acessos.buscar');
-
-// ✅ Rota para buscar motoristas de acessos liberados (autocomplete para veículos do tipo PARTICULAR e MOTO)
 Route::get('/registro-veiculos/buscar-motoristas-acesso', [RegistroVeiculoController::class, 'buscarMotoristasAcesso'])->name('registro_veiculos.buscar_motoristas_acesso');
 
 // ---------------------------
@@ -96,7 +89,7 @@ Route::resource('veiculos', VeiculoController::class);
 Route::resource('registro_veiculos', RegistroVeiculoController::class);
 Route::resource('estacionamentos', EstacionamentoController::class);
 
-// ✅ Protegendo ocorrências e acompanhamentos com auth
+// ✅ Ocorrências e Acompanhamentos protegidos
 Route::middleware(['auth'])->group(function () {
     Route::resource('ocorrencias', OcorrenciaController::class);
     Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])->name('acompanhamentos.create');
@@ -115,8 +108,6 @@ Route::resource('permissoes', PermissaoController::class)->parameters(['permisso
 Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])->name('usuarios.alternar-status');
 Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
 Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])->name('registro_veiculos.registrar_saida');
-
-// ✅ Limpar registros com saída
 Route::post('/registro-veiculos/limpar-com-saida', [RegistroVeiculoController::class, 'limparComSaida'])->name('registro_veiculos.limpar_com_saida');
 
 // ---------------------------
@@ -131,24 +122,33 @@ Route::get('/teste', function () {
     return 'Você está no projeto gesgaragem!';
 });
 
-// ✅ Rotas de Mensagens
+// ✅ Mensagens
 Route::resource('mensagens', MensagemController::class);
 
-// ✅ Rotas de Relatórios de Veículos
+// ✅ Relatórios
 Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
     Route::get('/', [RelatorioVeiculoController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioVeiculoController::class, 'exportar'])->name('exportar');
     Route::get('/{relatorio}', [RelatorioVeiculoController::class, 'show'])->name('show');
 });
 
-// ✅ Rotas de Relatórios de Usuários
 Route::prefix('relatorios/usuarios')->name('relatorios.usuarios.')->group(function () {
     Route::get('/', [RelatorioUsuarioController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioUsuarioController::class, 'exportar'])->name('exportar');
 });
 
-// ✅ Rotas de Relatórios de Registros de Veículos
 Route::prefix('relatorios/registro-veiculos')->name('relatorios.registros.')->group(function () {
     Route::get('/', [RelatorioRegistroVeiculoController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioRegistroVeiculoController::class, 'exportar'])->name('exportar');
+});
+// ✅ Relatórios de Ocorrências
+Route::prefix('relatorios/ocorrencias')->name('relatorios.ocorrencias.')->group(function () {
+    Route::get('/', [RelatorioOcorrenciaController::class, 'index'])->name('index');
+    Route::get('/exportar', [RelatorioOcorrenciaController::class, 'exportar'])->name('exportar');
+
+    // ✅ Exportar ocorrência individual
+    Route::get('/exportar/{id}', [RelatorioOcorrenciaController::class, 'exportarIndividual'])->name('exportar_individual');
+
+    // ✅ Exportar múltiplas ocorrências selecionadas
+    Route::post('/exportar-selecionadas', [RelatorioOcorrenciaController::class, 'exportarSelecionadas'])->name('exportar_selecionadas');
 });
