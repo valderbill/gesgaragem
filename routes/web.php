@@ -18,17 +18,16 @@ use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\RelatorioVeiculoController;
 use App\Http\Controllers\RelatorioUsuarioController;
 use App\Http\Controllers\RelatorioRegistroVeiculoController;
-use App\Http\Controllers\RelatorioOcorrenciaController; 
+use App\Http\Controllers\RelatorioOcorrenciaController;
+use App\Http\Controllers\RelatorioMotoristaController;
 
 // Página pública
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', fn() => view('welcome'));
 
 // Dashboard protegida
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', fn() => view('dashboard'))
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // Perfil do usuário autenticado
 Route::middleware('auth')->group(function () {
@@ -37,7 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 // Redirecionamento por perfil
 Route::get('/redirect', function () {
@@ -60,9 +59,7 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/home', 'home')->name('home');
 });
 
-// ---------------------
 // Buscas e autocomplete
-// ---------------------
 Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar');
 Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
 Route::get('/veiculos/{id}/buscar', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId');
@@ -71,15 +68,11 @@ Route::get('/api/veiculo-por-placa/{placa}', [VeiculoController::class, 'buscarP
 Route::get('/acessos/buscar', [AcessoLiberadoController::class, 'buscar'])->name('acessos.buscar');
 Route::get('/registro-veiculos/buscar-motoristas-acesso', [RegistroVeiculoController::class, 'buscarMotoristasAcesso'])->name('registro_veiculos.buscar_motoristas_acesso');
 
-// ---------------------------
 // Seleção de Estacionamento
-// ---------------------------
 Route::get('/selecionar-estacionamento', [EstacionamentoController::class, 'selecionar'])->name('selecionar.estacionamento');
 Route::post('/definir-estacionamento', [EstacionamentoController::class, 'definir'])->name('definir.estacionamento');
 
-// ---------------------------
 // Recursos principais
-// ---------------------------
 Route::resource('usuarios', UsuarioController::class);
 Route::resource('motoristas', MotoristaController::class);
 Route::patch('motoristas/{id}/alternar-status', [MotoristaController::class, 'alternarStatus'])->name('motoristas.alternar-status');
@@ -89,66 +82,62 @@ Route::resource('veiculos', VeiculoController::class);
 Route::resource('registro_veiculos', RegistroVeiculoController::class);
 Route::resource('estacionamentos', EstacionamentoController::class);
 
-// ✅ Ocorrências e Acompanhamentos protegidos
+// Ocorrências e Acompanhamentos
 Route::middleware(['auth'])->group(function () {
     Route::resource('ocorrencias', OcorrenciaController::class);
     Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])->name('acompanhamentos.create');
     Route::post('acompanhamentos/{ocorrencia}', [AcompanhamentoController::class, 'store'])->name('acompanhamentos.store');
 });
 
-// ---------------------------
 // Perfis e Permissões
-// ---------------------------
 Route::resource('perfis', PerfilController::class)->parameters(['perfis' => 'perfil']);
 Route::resource('permissoes', PermissaoController::class)->parameters(['permissoes' => 'permissao']);
 
-// ---------------------------
 // Ações extras
-// ---------------------------
 Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])->name('usuarios.alternar-status');
 Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
 Route::post('registro_veiculos/{id}/registrar_saida', [RegistroVeiculoController::class, 'registrarSaida'])->name('registro_veiculos.registrar_saida');
 Route::post('/registro-veiculos/limpar-com-saida', [RegistroVeiculoController::class, 'limparComSaida'])->name('registro_veiculos.limpar_com_saida');
 
-// ---------------------------
 // Painel de dados
-// ---------------------------
 Route::get('/painel/dados', [PainelController::class, 'dados'])->name('painel.dados');
 
-// ---------------------------
 // Rota de teste
-// ---------------------------
-Route::get('/teste', function () {
-    return 'Você está no projeto gesgaragem!';
-});
+Route::get('/teste', fn() => 'Você está no projeto gesgaragem!');
 
-// ✅ Mensagens
+// Mensagens
 Route::resource('mensagens', MensagemController::class);
 
-// ✅ Relatórios
+// Relatórios - Veículos
 Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
     Route::get('/', [RelatorioVeiculoController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioVeiculoController::class, 'exportar'])->name('exportar');
     Route::get('/{relatorio}', [RelatorioVeiculoController::class, 'show'])->name('show');
 });
 
+// Relatórios - Usuários
 Route::prefix('relatorios/usuarios')->name('relatorios.usuarios.')->group(function () {
     Route::get('/', [RelatorioUsuarioController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioUsuarioController::class, 'exportar'])->name('exportar');
 });
 
+// Relatórios - Registro de Veículos
 Route::prefix('relatorios/registro-veiculos')->name('relatorios.registros.')->group(function () {
     Route::get('/', [RelatorioRegistroVeiculoController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioRegistroVeiculoController::class, 'exportar'])->name('exportar');
 });
-// ✅ Relatórios de Ocorrências
+
+// Relatórios - Ocorrências
 Route::prefix('relatorios/ocorrencias')->name('relatorios.ocorrencias.')->group(function () {
     Route::get('/', [RelatorioOcorrenciaController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioOcorrenciaController::class, 'exportar'])->name('exportar');
-
-    // ✅ Exportar ocorrência individual
     Route::get('/exportar/{id}', [RelatorioOcorrenciaController::class, 'exportarIndividual'])->name('exportar_individual');
-
-    // ✅ Exportar múltiplas ocorrências selecionadas
     Route::post('/exportar-selecionadas', [RelatorioOcorrenciaController::class, 'exportarSelecionadas'])->name('exportar_selecionadas');
+});
+
+// ✅ Relatórios - Motoristas Oficiais
+Route::prefix('relatorios/motoristas')->name('relatorios.motoristas.')->group(function () {
+    Route::get('/', [RelatorioMotoristaController::class, 'index'])->name('index');
+    Route::get('/exportar', [RelatorioMotoristaController::class, 'exportar'])->name('exportar');
+    Route::post('/exportar-selecionados', [RelatorioMotoristaController::class, 'exportarSelecionados'])->name('exportar_selecionados');
 });

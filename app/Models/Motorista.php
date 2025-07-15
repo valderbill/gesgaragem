@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Motorista extends Model
 {
-    // Define a tabela associada (caso o nome não siga a convenção "motoristas")
+    // Define a tabela associada
     protected $table = 'motoristas_oficiais';
 
     // Campos que podem ser preenchidos em massa
@@ -14,6 +14,12 @@ class Motorista extends Model
         'nome',
         'matricula',
         'foto',
+        'ativo',
+    ];
+
+    // Casts de tipo
+    protected $casts = [
+        'ativo' => 'boolean',
     ];
 
     /**
@@ -22,5 +28,29 @@ class Motorista extends Model
     public function setNomeAttribute($value)
     {
         $this->attributes['nome'] = mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
+     * 🔠 Mutator: converte a matrícula para MAIÚSCULAS automaticamente
+     */
+    public function setMatriculaAttribute($value)
+    {
+        $this->attributes['matricula'] = mb_strtoupper($value, 'UTF-8');
+    }
+
+    /**
+     * ✅ Acessor: retorna texto legível para o status
+     */
+    public function getStatusTextoAttribute()
+    {
+        return $this->ativo ? 'ATIVO' : 'INATIVO';
+    }
+
+    /**
+     * ✅ Acessor: retorna a URL da foto (caso seja usada no sistema)
+     */
+    public function getFotoUrlAttribute()
+    {
+        return asset('storage/fotos_motoristas/' . $this->foto);
     }
 }
