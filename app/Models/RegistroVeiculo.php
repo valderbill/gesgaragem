@@ -25,57 +25,72 @@ class RegistroVeiculo extends Model
         'quantidade_passageiros',
     ];
 
+    // Veículo relacionado
     public function veiculo()
     {
         return $this->belongsTo(Veiculo::class, 'veiculo_id');
     }
 
-    // Relacionamento com motoristas oficiais (para veículos OFICIAIS)
+    // Motorista oficial na entrada
     public function motoristaOficialEntrada()
     {
         return $this->belongsTo(Motorista::class, 'motorista_entrada_id');
     }
 
-    // Relacionamento com usuários (para veículos PARTICULAR ou MOTO com acesso liberado)
-    public function motoristaUsuarioEntrada()
-    {
-        return $this->belongsTo(Usuario::class, 'motorista_entrada_id');
-    }
-
-    // Relação genérica que evita erro no controller
-    public function motoristaEntrada()
-    {
-        // Retorna o mesmo que motoristaOficialEntrada, por compatibilidade
-        return $this->belongsTo(Motorista::class, 'motorista_entrada_id');
-    }
-
+    // Motorista oficial na saída
     public function motoristaSaida()
     {
         return $this->belongsTo(Motorista::class, 'motorista_saida_id');
     }
 
+    // Motorista genérico (usado em relatórios)
+    public function motoristaEntrada()
+    {
+        return $this->belongsTo(Motorista::class, 'motorista_entrada_id');
+    }
+
+    // Usuário que realizou a entrada
     public function usuarioEntrada()
     {
         return $this->belongsTo(Usuario::class, 'usuario_entrada_id');
     }
 
+    // Usuário que realizou a saída
     public function usuarioSaida()
     {
         return $this->belongsTo(Usuario::class, 'usuario_saida_id');
     }
 
+    // Estacionamento relacionado
     public function estacionamento()
     {
         return $this->belongsTo(Estacionamento::class, 'estacionamento_id');
     }
 
-    // Helper para exibir o nome do motorista de entrada corretamente
+    // Nome do motorista para exibição (usuado no relatório, adaptável para oficial ou particular)
     public function getNomeMotoristaEntradaAttribute()
     {
         if ($this->tipo === 'OFICIAL') {
             return optional($this->motoristaOficialEntrada)->nome;
-        } else {
-            return optional($this->veiculo->acesso)->nome;
         }
+
+        // Caso seja veículo com acesso liberado (motorista particular registrado em "acesso")
+        return optional(optional($this->veiculo)->acesso)->nome;
+    }
+
+    public function getNomeMotoristaSaidaAttribute()
+    {
+        return optional($this->motoristaSaida)->nome ?? '-';
+    }
+
+    // Formatação de datas para exibição segura
+    public function getHorarioEntradaFormatadoAttribute()
+    {
+        return $this->horario_entrada ? date('d/m/Y H:i', strtotime($this->horario_entrada)) : '-';
+    }
+
+    public function getHorarioSaidaFormatadoAttribute()
+    {
+        return $this->horario_saida ? date('d/m/Y H:i', strtotime($this->horario_saida)) : '-';
     }
 }

@@ -17,6 +17,7 @@ use App\Http\Controllers\EstacionamentoController;
 use App\Http\Controllers\MensagemController;
 use App\Http\Controllers\RelatorioVeiculoController;
 use App\Http\Controllers\RelatorioUsuarioController;
+use App\Http\Controllers\RelatorioRegistroVeiculoController; // ✅ Adicionado
 
 // Página pública
 Route::get('/', function () {
@@ -134,13 +135,20 @@ Route::get('/teste', function () {
 Route::resource('mensagens', MensagemController::class);
 
 // ✅ Rotas de Relatórios de Veículos
-    Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
+Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
     Route::get('/', [RelatorioVeiculoController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioVeiculoController::class, 'exportar'])->name('exportar');
     Route::get('/{relatorio}', [RelatorioVeiculoController::class, 'show'])->name('show');
 });
 
+// ✅ Rotas de Relatórios de Usuários
 Route::prefix('relatorios/usuarios')->name('relatorios.usuarios.')->group(function () {
     Route::get('/', [RelatorioUsuarioController::class, 'index'])->name('index');
     Route::get('/exportar', [RelatorioUsuarioController::class, 'exportar'])->name('exportar');
+});
+
+// ✅ Rotas de Relatórios de Registros de Veículos
+Route::prefix('relatorios/registro-veiculos')->name('relatorios.registros.')->group(function () {
+    Route::get('/', [RelatorioRegistroVeiculoController::class, 'index'])->name('index');
+    Route::get('/exportar', [RelatorioRegistroVeiculoController::class, 'exportar'])->name('exportar');
 });
