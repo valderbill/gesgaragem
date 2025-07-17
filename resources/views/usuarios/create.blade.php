@@ -29,7 +29,12 @@
 
         <div class="mb-3">
             <label for="senha" class="form-label">Senha</label>
-            <input type="password" class="form-control" id="senha" name="password" required>
+            <input type="password" class="form-control" id="senha" name="senha" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="senha_confirmation" class="form-label">Confirmar Senha</label>
+            <input type="password" class="form-control" id="senha_confirmation" name="senha_confirmation" required>
         </div>
 
         <div class="mb-3">
@@ -45,6 +50,8 @@
         </div> 
 
         <div class="form-check mb-3">
+            {{-- Campo oculto para garantir envio do valor 0 quando checkbox não estiver marcado --}}
+            <input type="hidden" name="ativo" value="0">
             <input class="form-check-input" type="checkbox" value="1" id="ativo" name="ativo" {{ old('ativo', 1) ? 'checked' : '' }}>
             <label class="form-check-label" for="ativo">
                 <i class="fa-solid fa-bolt" style="color: #ffc107;"></i> Ativo

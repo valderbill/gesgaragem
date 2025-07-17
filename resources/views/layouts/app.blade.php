@@ -57,7 +57,7 @@
             <div class="collapse navbar-collapse" id="navbarNavDropdown">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     @php
-                        $perfil = Auth::user()?->perfil?->nome;
+                        $perfil = strtolower(Auth::user()?->perfil?->nome);
                     @endphp
 
                     @if($perfil === 'administrador')
@@ -75,7 +75,7 @@
                             <li><a class="dropdown-item" href="{{ route('ocorrencias.index') }}">Ocorrências</a></li>
                         </ul>
                     </li>
-                    @elseif($perfil === 'vigilante' || $perfil === 'recepcionista')
+                    @elseif(in_array($perfil, ['vigilante', 'recepcionista']))
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Vigilante/Recepção

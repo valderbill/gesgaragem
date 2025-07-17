@@ -26,7 +26,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'matricula' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'senha' => ['required', 'string'],
         ];
     }
 
@@ -39,7 +39,7 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $credentials = $this->only('matricula', 'password');
+        $credentials = $this->only('matricula', 'senha');
 
         // Adiciona verificação de usuário ativo
         $credentials['ativo'] = true;

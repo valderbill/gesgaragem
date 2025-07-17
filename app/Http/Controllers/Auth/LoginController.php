@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
-use App\Models\Usuario; // Certifique-se de importar seu model de usuário
+use App\Models\Usuario;
 
 class LoginController extends Controller
 {
     /**
-     * Exibe o formulário de login
+     * Exibe o formulário de login.
      */
     public function showLoginForm()
     {
@@ -19,23 +19,23 @@ class LoginController extends Controller
     }
 
     /**
-     * Realiza a autenticação
+     * Realiza a autenticação.
      */
     public function login(Request $request)
     {
-        // Validação dos campos
+        // Validação dos campos do formulário
         $credentials = $request->validate([
             'matricula' => ['required', 'string'],
             'senha' => ['required', 'string'],
         ]);
 
-        // Busca o usuário pelo campo matrícula
+        // Busca o usuário pela matrícula
         $user = Usuario::where('matricula', $credentials['matricula'])->first();
 
         // Verifica se o usuário existe
         if (!$user) {
             throw ValidationException::withMessages([
-                'matricula' => __('Matrícula ou senha inválida.'),
+                'matricula' => __('Matrícula não encontrada.'),
             ]);
         }
 
@@ -46,23 +46,25 @@ class LoginController extends Controller
             ]);
         }
 
-        // Tenta autenticar com os campos corretos
-        if (Auth::attempt([
-            'matricula' => $credentials['matricula'],
-            'password' => $credentials['senha']
-        ], $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended('/dashboard'); // Altere para sua rota de destino
+        // Verifica se a senha está correta usando Hash::check
+        if (!\Illuminate\Support\Facades\Hash::check($credentials['senha'], $user->senha)) {
+            throw ValidationException::withMessages([
+                'senha' => __('Senha incorreta.'),
+            ]);
         }
 
-        // Senha incorreta
-        throw ValidationException::withMessages([
-            'matricula' => __('Matrícula ou senha inválida.'),
-        ]);
+        // Faz login manualmente, pois o campo da senha é personalizado
+        Auth::login($user, $request->boolean('remember'));
+
+        // Regenera a sessão para segurança
+        $request->session()->regenerate();
+
+        // Redireciona para a página inicial ou dashboard
+        return redirect()->intended('/dashboard');
     }
 
     /**
-     * Realiza o logout
+     * Realiza o logout.
      */
     public function logout(Request $request)
     {

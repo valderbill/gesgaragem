@@ -14,9 +14,9 @@
 
         <!-- Senha -->
         <div class="mb-4">
-            <x-input-label for="password" :value="__('password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <x-input-label for="senha" :value="__('Senha')" />
+            <x-text-input id="senha" class="block mt-1 w-full" type="password" name="senha" required autocomplete="current-password" />
+            <x-input-error :messages="$errors->get('senha')" class="mt-2" />
         </div>
 
         <!-- Lembrar de mim -->

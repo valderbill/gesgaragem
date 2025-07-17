@@ -2,114 +2,66 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use App\Models\Perfil;
-use App\Models\Mensagem;
-use App\Models\AcessoLiberado;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Hash;
 
 class Usuario extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory;
 
     protected $table = 'usuarios';
 
     protected $fillable = [
         'nome',
         'matricula',
-        'password',
+        'senha',
         'perfil_id',
         'ativo',
-        // Campos que são definidos automaticamente mas podem ser preenchidos no controller
-        'criado_por_id',
-        'ativado_por_id',
-        'data_ativacao',
-        'inativado_por_id',
-        'data_inativacao',
     ];
 
     protected $hidden = [
-        'password',
+        'senha',
         'remember_token',
     ];
 
     protected $casts = [
         'ativo' => 'boolean',
-        'data_ativacao' => 'datetime',
-        'data_inativacao' => 'datetime',
     ];
 
-    /**
-     * 🔒 Senha criptografada
-     */
-    public function setPasswordAttribute($value)
+    // Usa o campo 'senha' no lugar do padrão 'password'
+    public function setSenhaAttribute($value)
     {
-        $this->attributes['password'] = bcrypt($value);
+        $this->attributes['senha'] = Hash::make($value);
     }
 
-    /**
-     * 🆙 Nome sempre em MAIÚSCULAS
-     */
-    public function setNomeAttribute($value)
-    {
-        $this->attributes['nome'] = mb_strtoupper($value, 'UTF-8');
-    }
-
-    /**
-     * 🔐 Perfil do usuário
-     */
+    // Relacionamento com o modelo Perfil
     public function perfil()
     {
         return $this->belongsTo(Perfil::class);
     }
 
-    /**
-     * 📨 Mensagens não lidas (relacionamento com pivot)
-     */
+    // Mensagens enviadas
+    public function mensagensEnviadas()
+    {
+        return $this->hasMany(Mensagem::class, 'remetente_id');
+    }
+
+    // Mensagens recebidas
+    public function mensagensRecebidas()
+    {
+        return $this->hasMany(MensagemDestinatario::class, 'destinatario_id');
+    }
+
+    // Mensagens não lidas
     public function mensagensNaoLidas()
     {
-        return $this->belongsToMany(Mensagem::class, 'mensagem_destinatarios', 'destinatario_id', 'mensagem_id')
-                    ->wherePivot('lida', false);
+        return $this->mensagensRecebidas()->where('lida', false);
     }
 
-    /**
-     * ✅ Acessos liberados
-     */
-    public function acessosLiberados()
-    {
-        return $this->hasMany(AcessoLiberado::class, 'usuario_id');
-    }
-
-    /**
-     * 👤 Usuário que criou este usuário
-     */
-    public function criador()
-    {
-        return $this->belongsTo(self::class, 'criado_por_id');
-    }
-
-    /**
-     * ✅ Usuário que ativou este usuário
-     */
-    public function ativadoPor()
-    {
-        return $this->belongsTo(self::class, 'ativado_por_id');
-    }
-
-    /**
-     * 🚫 Usuário que inativou este usuário
-     */
-    public function inativadoPor()
-    {
-        return $this->belongsTo(self::class, 'inativado_por_id');
-    }
-
-    /**
-     * 🔑 Autenticação: qual campo usar como senha
-     */
+    // Campo de senha personalizado
     public function getAuthPassword()
     {
-        return $this->password;
+        return $this->senha;
     }
 }

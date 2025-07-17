@@ -47,6 +47,7 @@
 
         {{-- Campo Ativo --}}
         <div class="form-check mb-3">
+            {{-- Campo oculto para enviar valor 0 caso checkbox não esteja marcado --}}
             <input type="hidden" name="ativo" value="0">
             <input class="form-check-input" type="checkbox" value="1" id="ativo" name="ativo" {{ old('ativo', $usuario->ativo) ? 'checked' : '' }}>
             <label class="form-check-label" for="ativo">
