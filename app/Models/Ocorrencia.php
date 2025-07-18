@@ -18,7 +18,7 @@ class Ocorrencia extends Model
     public $timestamps = false;
 
     // Campos que podem ser preenchidos em massa (mass assignment)
-    protected $fillable = ['ocorrencia', 'horario', 'usuario_id'];
+    protected $fillable = ['descricao', 'horario', 'usuario_id'];  
 
     // Conversão automática de tipos
     protected $casts = [

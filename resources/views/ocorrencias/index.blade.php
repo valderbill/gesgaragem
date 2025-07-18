@@ -37,7 +37,7 @@
             @forelse($ocorrencias as $ocorrencia)
                 <tr>
                     {{-- Limita o texto a 50 caracteres sem quebrar HTML --}}
-                    <td>{{ Str::limit($ocorrencia->ocorrencia, 50) }}</td>
+                    <td>{{ Str::limit($ocorrencia->descricao, 50) }}</td> <!-- Alterado para 'descricao' -->
 
                     {{-- Exibe a data formatada --}}
                     <td>{{ optional($ocorrencia->horario)->format('d/m/Y H:i:s') }}</td>

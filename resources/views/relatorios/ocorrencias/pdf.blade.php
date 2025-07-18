@@ -111,7 +111,7 @@
                     <td>{{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }}</td>
                     <td>{{ $ocorrencia->usuario->nome ?? '-' }}</td>
                     <td>
-                        <strong>Ocorrência:</strong> {{ $ocorrencia->ocorrencia }}
+                        <strong>Ocorrência:</strong> {{ $ocorrencia->descricao }} <!-- Alterado para 'descricao' -->
 
                         @if($ocorrencia->acompanhamentos->count())
                             <div class="acompanhamentos">
@@ -120,7 +120,7 @@
                                     @foreach($ocorrencia->acompanhamentos as $acompanhamento)
                                         <li>
                                             {{ \Carbon\Carbon::parse($acompanhamento->horario)->format('d/m/Y H:i') }} –
-                                            {{ $acompanhamento->descricao }}
+                                            {{ $acompanhamento->descricao }} <!-- Alterado para 'descricao' -->
                                         </li>
                                     @endforeach
                                 </ul>

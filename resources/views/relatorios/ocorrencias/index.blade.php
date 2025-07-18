@@ -69,7 +69,7 @@
                         <td>{{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }}</td>
                         <td class="text-start">
                             <div class="fw-bold text-dark">
-                                • {{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }} – {{ Str::limit($ocorrencia->ocorrencia, 100) }}
+                                • {{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }} – {{ Str::limit($ocorrencia->descricao, 100) }}
                             </div>
                             @if($ocorrencia->acompanhamentos->count())
                                 <ul class="mt-1 mb-0 ps-3 small text-muted">

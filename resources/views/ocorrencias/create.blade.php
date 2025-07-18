@@ -21,8 +21,8 @@
         @csrf
 
         <div class="mb-3">
-            <label for="ocorrencia" class="form-label">Descrição da Ocorrência</label>
-            <textarea name="ocorrencia" id="ocorrencia" class="form-control" rows="4" required>{{ old('ocorrencia') }}</textarea>
+            <label for="descricao" class="form-label">Descrição da Ocorrência</label>
+            <textarea name="descricao" id="descricao" class="form-control" rows="4" required>{{ old('descricao') }}</textarea>  <!-- Alterado para 'descricao' -->
         </div>
 
         <button type="submit" class="btn btn-success">Salvar</button>

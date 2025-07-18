@@ -8,7 +8,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5><strong>Ocorrência Inicial:</strong></h5>
-            <p>{{ $ocorrencia->ocorrencia }}</p>
+            <p>{{ $ocorrencia->descricao }}</p> <!-- Alterado para 'descricao' -->
 
             <p><strong>Data/Hora:</strong> {{ \Carbon\Carbon::parse($ocorrencia->horario)->format('d/m/Y H:i') }}</p>
             <p><strong>Registrado por:</strong> {{ optional($ocorrencia->usuario)->nome ?? 'Não informado' }}</p>
@@ -25,7 +25,7 @@
                 <ul class="list-group">
                     @foreach($ocorrencia->acompanhamentos as $acompanhamento)
                         <li class="list-group-item">
-                            <p>{{ $acompanhamento->descricao }}</p>
+                            <p>{{ $acompanhamento->descricao }}</p> <!-- Alterado para 'descricao' -->
                             <small>
                                 <strong>Data/Hora:</strong> {{ \Carbon\Carbon::parse($acompanhamento->horario)->format('d/m/Y H:i') }} |
                                 <strong>Por:</strong> {{ optional($acompanhamento->usuario)->nome ?? 'Não informado' }}

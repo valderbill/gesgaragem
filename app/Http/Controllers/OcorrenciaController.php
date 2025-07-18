@@ -3,30 +3,67 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ocorrencia;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OcorrenciaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $usuario = Auth::user();
         $perfil = optional($usuario->perfil)->nome;
 
+        // Inicia a query para buscar as ocorrências
+        $query = Ocorrencia::with('usuario');
+
+        // Filtros
         if ($perfil !== 'administrador') {
-            // Mostra somente ocorrências do próprio usuário
-            $ocorrencias = Ocorrencia::with('usuario')
-                ->where('usuario_id', $usuario->id)
-                ->latest('horario')
-                ->paginate(10);
-        } else {
-            // Administrador vê todas
-            $ocorrencias = Ocorrencia::with('usuario')
-                ->latest('horario')
-                ->paginate(10);
+            // Usuário não administrador vê apenas suas próprias ocorrências
+            $query->where('usuario_id', $usuario->id);
         }
 
-        return view('ocorrencias.index', compact('ocorrencias'));
+        // Filtro por texto da ocorrência
+        if ($request->filled('texto')) {
+            // Alterado de 'ocorrencia' para 'descricao'
+            $query->where('descricao', 'ILIKE', '%' . $request->texto . '%');
+        }
+
+        // Filtro por usuário
+        if ($request->filled('usuario')) {
+            $query->whereHas('usuario', function ($query) use ($request) {
+                $query->where('nome', 'ILIKE', '%' . $request->usuario . '%');
+            });
+        }
+
+        // Filtro por presença de acompanhamento
+        if ($request->filled('possui_acompanhamento')) {
+            $query->whereHas('acompanhamentos', function ($query) use ($request) {
+                if ($request->possui_acompanhamento === 'sim') {
+                    $query->whereNotNull('descricao');
+                } else {
+                    $query->whereNull('descricao');
+                }
+            });
+        }
+
+        // Filtro por data inicial
+        if ($request->filled('data_inicial')) {
+            $query->whereDate('horario', '>=', $request->data_inicial);
+        }
+
+        // Filtro por data final
+        if ($request->filled('data_final')) {
+            $query->whereDate('horario', '<=', $request->data_final);
+        }
+
+        // Paginação
+        $ocorrencias = $query->latest('horario')->paginate(10);
+
+        // Para o filtro de usuários
+        $usuarios = Usuario::select('nome')->orderBy('nome')->get();
+
+        return view('ocorrencias.index', compact('ocorrencias', 'usuarios'));
     }
 
     public function create()
@@ -37,13 +74,13 @@ class OcorrenciaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ocorrencia' => 'required|string|max:1000',
+            'descricao' => 'required|string|max:1000',  // Agora esperamos 'descricao'
         ]);
 
         Ocorrencia::create([
-            'ocorrencia'  => $request->input('ocorrencia'),
-            'horario'     => now(),
-            'usuario_id'  => Auth::id(),
+            'descricao'  => $request->input('descricao'),  // Salvando 'descricao'
+            'horario'    => now(),
+            'usuario_id' => Auth::id(),
         ]);
 
         return redirect()->route('ocorrencias.index')->with('success', 'Ocorrência registrada com sucesso.');
@@ -72,7 +109,7 @@ class OcorrenciaController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'ocorrencia' => 'required|string|max:1000',
+            'descricao' => 'required|string|max:1000',  // Agora esperamos 'descricao'
         ]);
 
         $ocorrencia = Ocorrencia::findOrFail($id);
@@ -85,7 +122,7 @@ class OcorrenciaController extends Controller
         }
 
         $ocorrencia->update([
-            'ocorrencia' => $request->input('ocorrencia'),
+            'descricao' => $request->input('descricao'),  // Atualizando 'descricao'
         ]);
 
         return redirect()->route('ocorrencias.index')->with('success', 'Ocorrência atualizada com sucesso.');
