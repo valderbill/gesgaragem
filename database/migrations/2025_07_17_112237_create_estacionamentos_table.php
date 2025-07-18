@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('estacionamentos', function (Blueprint $table) {
             $table->id();
+            $table->string('localizacao');
+            $table->integer('vagas_particulares')->nullable();
+            $table->integer('vagas_oficiais')->nullable();
+            $table->integer('vagas_motos')->nullable();
             $table->timestamps();
         });
     }

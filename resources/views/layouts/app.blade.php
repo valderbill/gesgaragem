@@ -75,6 +75,19 @@
                             <li><a class="dropdown-item" href="{{ route('ocorrencias.index') }}">Ocorrências</a></li>
                         </ul>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Relatórios
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('relatorios.motoristas.index') }}">Motoristas</a></li>
+                            <li><a class="dropdown-item" href="{{ route('relatorios.ocorrencias.index') }}">Ocorrências</a></li>
+                            <li><a class="dropdown-item" href="{{ route('relatorios.veiculos.index') }}">Veículos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('relatorios.usuarios.index') }}">Usuários</a></li>
+                            <li><a class="dropdown-item" href="{{ route('relatorios.registros.index') }}">Registros de Veículos</a></li>
+                        </ul>
+                    </li>
                     @elseif(in_array($perfil, ['vigilante', 'recepcionista']))
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

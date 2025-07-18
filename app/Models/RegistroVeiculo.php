@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class RegistroVeiculo extends Model
 {
-    public $timestamps = false;
+        public $timestamps = false;
 
     protected $fillable = [
         'veiculo_id',
@@ -14,83 +16,123 @@ class RegistroVeiculo extends Model
         'marca',
         'modelo',
         'cor',
-        'tipo',
-        'motorista_entrada_id',
-        'motorista_saida_id',
+        'tipo', // OFICIAL | PARTICULAR | MOTO
+        'motorista_entrada_id',        // FK -> motoristas_oficiais.id OU (para part/moto) id de acesso
+        'motorista_saida_id',          // FK -> motoristas_oficiais.id (OFICIAL)
+        'motorista_saida_outros_id',   // FK -> acessos_liberados.id (PARTICULAR/MOTO) 
         'horario_entrada',
         'horario_saida',
-        'usuario_saida_id',
         'usuario_entrada_id',
+        'usuario_saida_id',
         'estacionamento_id',
         'quantidade_passageiros',
     ];
 
-    // Veículo relacionado
-    public function veiculo()
+    protected $casts = [
+        'horario_entrada' => 'datetime',
+        'horario_saida'   => 'datetime',
+        'quantidade_passageiros' => 'integer',
+    ];
+
+    public function veiculo(): BelongsTo
     {
         return $this->belongsTo(Veiculo::class, 'veiculo_id');
     }
 
-    // Motorista oficial na entrada
-    public function motoristaOficialEntrada()
+    /**
+     * Motorista oficial (entrada).
+     */
+    public function motoristaEntrada(): BelongsTo
     {
         return $this->belongsTo(Motorista::class, 'motorista_entrada_id');
     }
 
-    // Motorista oficial na saída
-    public function motoristaSaida()
+    /**
+     * Motorista oficial (saída). Usado apenas em OFICIAL.
+     */
+    public function motoristaSaida(): BelongsTo
     {
         return $this->belongsTo(Motorista::class, 'motorista_saida_id');
     }
 
-    // Motorista genérico (usado em relatórios)
-    public function motoristaEntrada()
+    /**
+     * Motorista não-oficial usado na saída (PARTICULAR/MOTO) — Acesso Liberado.
+     */
+    public function motoristaSaidaOutros(): BelongsTo
     {
-        return $this->belongsTo(Motorista::class, 'motorista_entrada_id');
+        return $this->belongsTo(AcessoLiberado::class, 'motorista_saida_outros_id');
     }
 
-    // Usuário que realizou a entrada
-    public function usuarioEntrada()
+    /**
+     * Usuário que registrou a ENTRADA.
+     */
+    public function usuarioEntrada(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'usuario_entrada_id');
     }
 
-    // Usuário que realizou a saída
-    public function usuarioSaida()
+    /**
+     * Usuário que registrou a SAÍDA.
+     */
+    public function usuarioSaida(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'usuario_saida_id');
     }
 
-    // Estacionamento relacionado
-    public function estacionamento()
+    /**
+     * Estacionamento onde ocorreu o registro.
+     */
+    public function estacionamento(): BelongsTo
     {
         return $this->belongsTo(Estacionamento::class, 'estacionamento_id');
     }
 
-    // Nome do motorista para exibição (usuado no relatório, adaptável para oficial ou particular)
-    public function getNomeMotoristaEntradaAttribute()
+    public function getNomeMotoristaEntradaAttribute(): ?string
     {
         if ($this->tipo === 'OFICIAL') {
-            return optional($this->motoristaOficialEntrada)->nome;
+            return optional($this->motoristaEntrada)->nome;
         }
 
-        // Caso seja veículo com acesso liberado (motorista particular registrado em "acesso")
+        // Particular / Moto: motorista vem do acesso liberado vinculado ao veículo
         return optional(optional($this->veiculo)->acesso)->nome;
     }
 
-    public function getNomeMotoristaSaidaAttribute()
+    public function getNomeMotoristaSaidaAttribute(): ?string
     {
-        return optional($this->motoristaSaida)->nome ?? '-';
+        // Se houver motorista de saída "outros" (AcessoLiberado) 
+        if ($this->motorista_saida_outros_id && $this->relationLoaded('motoristaSaidaOutros')) {
+            if ($this->motoristaSaidaOutros) {
+                return $this->motoristaSaidaOutros->nome;
+            }
+        }
+
+        if ($this->tipo === 'OFICIAL') {
+            return optional($this->motoristaSaida)->nome;
+        }
+        
+        return $this->nome_motorista_entrada; 
     }
 
-    // Formatação de datas para exibição segura
-    public function getHorarioEntradaFormatadoAttribute()
+    /* -----------------------------------------------------------------
+     | Data formatada
+     |------------------------------------------------------------------
+     */
+
+    public function getHorarioEntradaFormatadoAttribute(): string
     {
-        return $this->horario_entrada ? date('d/m/Y H:i', strtotime($this->horario_entrada)) : '-';
+        $dt = $this->horario_entrada instanceof Carbon
+            ? $this->horario_entrada
+            : ($this->horario_entrada ? Carbon::parse($this->horario_entrada) : null);
+
+        return $dt ? $dt->format('d/m/Y H:i') : '-';
     }
 
-    public function getHorarioSaidaFormatadoAttribute()
+    public function getHorarioSaidaFormatadoAttribute(): string
     {
-        return $this->horario_saida ? date('d/m/Y H:i', strtotime($this->horario_saida)) : '-';
+        $dt = $this->horario_saida instanceof Carbon
+            ? $this->horario_saida
+            : ($this->horario_saida ? Carbon::parse($this->horario_saida) : null);
+
+        return $dt ? $dt->format('d/m/Y H:i') : '-';
     }
 }

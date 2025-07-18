@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('motoristas_oficiais', function (Blueprint $table) {
             $table->id();
+            $table->string('nome');
+            $table->string('matricula')->unique();
+            $table->string('foto')->nullable();
+            $table->boolean('ativo')->default(true);
             $table->timestamps();
         });
     }

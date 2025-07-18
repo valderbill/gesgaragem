@@ -6,18 +6,14 @@ use App\Models\Usuario;
 use App\Models\Perfil;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class RelatorioUsuarioController extends Controller
 {
-    /**
-     * Exibe o relatório com filtros e paginação
-     */
     public function index(Request $request)
     {
-        // Monta query base com relacionamentos
-        $query = Usuario::with(['perfil', 'criador', 'ativadoPor', 'inativadoPor']);
+        $query = Usuario::with(['perfil']);
 
-        // Filtros
         if ($request->filled('nome')) {
             $query->where('nome', 'ILIKE', '%' . $request->nome . '%');
         }
@@ -26,7 +22,7 @@ class RelatorioUsuarioController extends Controller
             $query->where('matricula', 'ILIKE', '%' . $request->matricula . '%');
         }
 
-        if ($request->filled('ativo')) {
+        if (!is_null($request->ativo)) {
             $query->where('ativo', $request->ativo);
         }
 
@@ -35,32 +31,23 @@ class RelatorioUsuarioController extends Controller
         }
 
         if ($request->filled('data_inicial')) {
-            $query->whereDate('created_at', '>=', $request->data_inicial);
+            $query->whereDate('created_at', '>=', Carbon::parse($request->data_inicial));
         }
 
         if ($request->filled('data_final')) {
-            $query->whereDate('created_at', '<=', $request->data_final);
+            $query->whereDate('created_at', '<=', Carbon::parse($request->data_final));
         }
 
-        // Paginação com 10 por página
         $usuarios = $query->paginate(10);
-
-        // Perfis disponíveis para o filtro
         $perfis = Perfil::orderBy('nome')->get();
 
-        // Envia para a view
         return view('relatorios.usuarios.index', compact('usuarios', 'perfis'));
     }
 
-    /**
-     * Gera PDF com os filtros aplicados
-     */
     public function exportar(Request $request)
     {
-        // Monta query base com relacionamentos
-        $query = Usuario::with(['perfil', 'criador', 'ativadoPor', 'inativadoPor']);
+        $query = Usuario::with(['perfil']);
 
-        // Filtros (mesmo do index)
         if ($request->filled('nome')) {
             $query->where('nome', 'ILIKE', '%' . $request->nome . '%');
         }
@@ -69,7 +56,7 @@ class RelatorioUsuarioController extends Controller
             $query->where('matricula', 'ILIKE', '%' . $request->matricula . '%');
         }
 
-        if ($request->filled('ativo')) {
+        if (!is_null($request->ativo)) {
             $query->where('ativo', $request->ativo);
         }
 
@@ -78,20 +65,16 @@ class RelatorioUsuarioController extends Controller
         }
 
         if ($request->filled('data_inicial')) {
-            $query->whereDate('created_at', '>=', $request->data_inicial);
+            $query->whereDate('created_at', '>=', Carbon::parse($request->data_inicial));
         }
 
         if ($request->filled('data_final')) {
-            $query->whereDate('created_at', '<=', $request->data_final);
+            $query->whereDate('created_at', '<=', Carbon::parse($request->data_final));
         }
 
-        // Sem paginação, tudo no PDF
-        $usuarios = $query->get();
-
-        // Filtros para exibir no cabeçalho do PDF se necessário
+        $usuarios = $query->orderBy('nome')->get(); // ordenação no PDF
         $filtros = $request->all();
 
-        // Gera e retorna o PDF
         $pdf = Pdf::loadView('relatorios.usuarios.pdf', compact('usuarios', 'filtros'))
             ->setPaper('a4', 'landscape');
 

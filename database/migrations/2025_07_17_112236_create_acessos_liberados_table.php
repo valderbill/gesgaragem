@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('acessos_liberados', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('nome');                   // Nome da pessoa com acesso liberado
+            $table->string('matricula')->nullable();  // Matrícula, se aplicável
+            $table->string('placa')->nullable();      // Placa do veículo
+            $table->date('validade')->nullable();     // Validade do acesso
+            $table->boolean('status')->default(true); // Status do acesso (ativo ou não)
+            $table->timestamps();                     // created_at e updated_at
         });
     }
 

@@ -70,9 +70,7 @@
                 <th>Perfil</th>
                 <th>Status</th>
                 <th>Criado por</th>
-                <th>Ativado/Inativado por</th>
                 <th>Data de Criação</th>
-                <th>Data Ativ/Inat.</th>
             </tr>
         </thead>
         <tbody>
@@ -83,27 +81,17 @@
                     <td>{{ optional($usuario->perfil)->nome ?? '-' }}</td>
                     <td>{{ $usuario->ativo ? 'Ativo' : 'Inativo' }}</td>
                     <td>{{ optional($usuario->criador)->nome ?? '-' }}</td>
-                    <td>
-                        {{ $usuario->ativo
-                            ? optional($usuario->ativadoPor)->nome
-                            : optional($usuario->inativadoPor)->nome }}
-                    </td>
                     <td>{{ optional($usuario->created_at)->format('d/m/Y H:i') }}</td>
-                    <td>
-                        {{ $usuario->ativo
-                            ? optional($usuario->data_ativacao)->format('d/m/Y H:i')
-                            : optional($usuario->data_inativacao)->format('d/m/Y H:i') }}
-                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center">Nenhum usuário encontrado.</td>
+                    <td colspan="6" class="text-center">Nenhum usuário encontrado.</td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    {{-- Paginação Bootstrap 4 --}}
+    {{-- Paginação Bootstrap --}}
     <div class="d-flex justify-content-center">
         {{ $usuarios->appends(request()->query())->links('pagination::bootstrap-4') }}
     </div>

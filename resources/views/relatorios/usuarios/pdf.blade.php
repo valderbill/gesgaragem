@@ -39,9 +39,7 @@
                 <th>Perfil</th>
                 <th>Status</th>
                 <th>Criado por</th>
-                <th>Ativado/Inativado por</th>
-                <th>Criação</th>
-                <th>Data Ativ/Inat</th>
+                <th>Data de Criação</th>
             </tr>
         </thead>
         <tbody>
@@ -52,17 +50,7 @@
                     <td>{{ optional($usuario->perfil)->nome ?? '-' }}</td>
                     <td>{{ $usuario->ativo ? 'Ativo' : 'Inativo' }}</td>
                     <td>{{ optional($usuario->criador)->nome ?? '-' }}</td>
-                    <td>
-                        {{ $usuario->ativo
-                            ? optional($usuario->ativadoPor)->nome
-                            : optional($usuario->inativadoPor)->nome }}
-                    </td>
                     <td>{{ optional($usuario->created_at)->format('d/m/Y H:i') }}</td>
-                    <td>
-                        {{ $usuario->ativo
-                            ? optional($usuario->data_ativacao)->format('d/m/Y H:i')
-                            : optional($usuario->data_inativacao)->format('d/m/Y H:i') }}
-                    </td>
                 </tr>
             @endforeach
         </tbody>
