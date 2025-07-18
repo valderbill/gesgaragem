@@ -22,7 +22,7 @@
 
     <form method="POST" action="{{ route('usuarios.update', $usuario->id) }}">
         @csrf
-        @method('PUT')
+        @method('PATCH') <!-- Alterado de 'PUT' para 'PATCH' -->
 
         <div class="mb-3">
             <label for="nome" class="form-label">Nome</label>

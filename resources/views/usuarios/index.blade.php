@@ -64,7 +64,7 @@
                     <td style="padding: 0.3rem; white-space: nowrap;">
                         <form id="status-form-{{ $usuario->id }}" action="{{ route('usuarios.alternar-status', $usuario->id) }}" method="POST" style="display:inline;">
                             @csrf
-                            @method('PUT')
+                            @method('PATCH') <!-- Alterado de 'PUT' para 'PATCH' -->
                             <div class="form-check form-check-inline" style="margin-bottom: 0;">
                                 <input class="form-check-input" type="radio" name="ativo" id="ativo-{{ $usuario->id }}" value="1"
                                     onchange="alterarStatus('status-form-{{ $usuario->id }}')" {{ $usuario->ativo ? 'checked' : '' }}>

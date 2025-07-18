@@ -24,34 +24,34 @@ use App\Http\Controllers\RelatorioOcorrenciaController;
 use App\Http\Controllers\RelatorioMotoristaController;
 
 /*
-|--------------------------------------------------------------------------
-| Rotas de autenticação manual (caso não use Breeze/Jetstream)
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Rotas de autenticação manual (caso não use Breeze/Jetstream)             |
+|--------------------------------------------------------------------------|
 */
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 /*
-|--------------------------------------------------------------------------
-| Página pública
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Página pública                                                           |
+|--------------------------------------------------------------------------|
 */
 Route::get('/', fn() => view('welcome'));
 
 /*
-|--------------------------------------------------------------------------
-| Dashboard protegida (após login)
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Dashboard protegida (após login)                                          |
+|--------------------------------------------------------------------------|
 */
 Route::get('/dashboard', fn() => view('dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 /*
-|--------------------------------------------------------------------------
-| Perfil do usuário autenticado
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Perfil do usuário autenticado                                             |
+|--------------------------------------------------------------------------|
 */
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -60,9 +60,9 @@ Route::middleware('auth')->group(function () {
 });
 
 /*
-|--------------------------------------------------------------------------
-| Redirecionamento por perfil
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Redirecionamento por perfil                                                |
+|--------------------------------------------------------------------------|
 */
 Route::get('/redirect', function () {
     $usuario = Auth::user();
@@ -77,9 +77,9 @@ Route::get('/redirect', function () {
 })->middleware(['auth'])->name('perfil.redirect');
 
 /*
-|--------------------------------------------------------------------------
-| Dashboards por perfil
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Dashboards por perfil                                                     |
+|--------------------------------------------------------------------------|
 */
 Route::middleware(['auth'])->group(function () {
     Route::view('/admin/dashboard', 'admin.dashboard')->name('admin.dashboard');
@@ -89,17 +89,17 @@ Route::middleware(['auth'])->group(function () {
 });
 
 /*
-|--------------------------------------------------------------------------
-| Rotas que exigem autenticação (sistema interno)
-| OBS: Mover aqui garante sessão + auth p/ buscar dados do painel.
-|--------------------------------------------------------------------------
+|--------------------------------------------------------------------------|
+| Rotas que exigem autenticação (sistema interno)                           |
+| OBS: Mover aqui garante sessão + auth p/ buscar dados do painel.         |
+|--------------------------------------------------------------------------|
 */
 Route::middleware(['auth'])->group(function () {
 
     /*
-    |----------------------------------------------------------------------
-    | Buscas e autocomplete
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Buscas e autocomplete                                                |
+    |----------------------------------------------------------------------|
     */
     Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar');
     Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
@@ -110,17 +110,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/registro-veiculos/buscar-motoristas-acesso', [RegistroVeiculoController::class, 'buscarMotoristasAcesso'])->name('registro_veiculos.buscar_motoristas_acesso');
 
     /*
-    |----------------------------------------------------------------------
-    | Seleção de Estacionamento
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Seleção de Estacionamento                                             |
+    |----------------------------------------------------------------------|
     */
     Route::get('/selecionar-estacionamento', [EstacionamentoController::class, 'selecionar'])->name('selecionar.estacionamento');
     Route::post('/definir-estacionamento', [EstacionamentoController::class, 'definir'])->name('definir.estacionamento');
 
     /*
-    |----------------------------------------------------------------------
-    | Recursos principais
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Recursos principais                                                  |
+    |----------------------------------------------------------------------|
     */
     Route::resource('usuarios', UsuarioController::class);
     Route::resource('motoristas', MotoristaController::class);
@@ -138,48 +138,48 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('estacionamentos', EstacionamentoController::class);
 
     /*
-    |----------------------------------------------------------------------
-    | Ocorrências e Acompanhamentos
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Ocorrências e Acompanhamentos                                         |
+    |----------------------------------------------------------------------|
     */
     Route::resource('ocorrencias', OcorrenciaController::class);
     Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])->name('acompanhamentos.create');
     Route::post('acompanhamentos/{ocorrencia}', [AcompanhamentoController::class, 'store'])->name('acompanhamentos.store');
 
     /*
-    |----------------------------------------------------------------------
-    | Perfis e Permissões
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Perfis e Permissões                                                  |
+    |----------------------------------------------------------------------|
     */
     Route::resource('perfis', PerfilController::class)->parameters(['perfis' => 'perfil']);
     Route::resource('permissoes', PermissaoController::class)->parameters(['permissoes' => 'permissao']);
 
     /*
-    |----------------------------------------------------------------------
-    | Ações extras de Usuário
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Ações extras de Usuário                                              |
+    |----------------------------------------------------------------------|
     */
-    Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'alternarStatus'])->name('usuarios.alternar-status');
+    Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'toggleStatus'])->name('usuarios.alternar-status');
     Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
 
     /*
-    |----------------------------------------------------------------------
-    | Painel de dados (CARDS / GRÁFICO)
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Painel de dados (CARDS / GRÁFICO)                                     |
+    |----------------------------------------------------------------------|
     */
     Route::get('/painel/dados', [PainelController::class, 'dados'])->name('painel.dados');
 
     /*
-    |----------------------------------------------------------------------
-    | Mensagens
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Mensagens                                                            |
+    |----------------------------------------------------------------------|
     */
     Route::resource('mensagens', MensagemController::class);
 
     /*
-    |----------------------------------------------------------------------
-    | Relatórios
-    |----------------------------------------------------------------------
+    |----------------------------------------------------------------------|
+    | Relatórios                                                           |
+    |----------------------------------------------------------------------|
     */
     // Veículos
     Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
@@ -216,10 +216,3 @@ Route::middleware(['auth'])->group(function () {
     });
 
 });
-
-/*
-|--------------------------------------------------------------------------
-| Rota de teste (pública)
-|--------------------------------------------------------------------------
-*/
-Route::get('/teste', fn() => 'Você está no projeto gesgaragem!');

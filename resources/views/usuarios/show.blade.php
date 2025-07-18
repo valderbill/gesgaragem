@@ -7,7 +7,7 @@
         <div class="card-body">
             <h5 class="card-title">{{ $usuario->nome }}</h5>
             <p class="card-text"><strong>Matrícula:</strong> {{ $usuario->matricula }}</p>
-            <p class="card-text"><strong>Perfil:</strong> {{ $usuario->perfil->nome ?? 'N/A' }}</p>
+            <p class="card-text"><strong>Perfil:</strong> {{ optional($usuario->perfil)->nome ?? 'N/A' }}</p>
 
             {{-- Status do usuário --}}
             <p class="card-text"><strong>Status:</strong> 
@@ -19,17 +19,17 @@
             </p>
 
             {{-- Informações de auditoria --}}
-            <p class="card-text"><strong>Criado por:</strong> {{ $usuario->criador->nome ?? 'N/A' }}</p>
+            <p class="card-text"><strong>Criado por:</strong> {{ optional($usuario->criador)->nome ?? 'N/A' }}</p>
             <p class="card-text"><strong>Última Ativação:</strong> 
                 @if($usuario->data_ativacao)
-                    {{ $usuario->data_ativacao->format('d/m/Y H:i') }} por {{ $usuario->ativadoPor->nome ?? 'N/A' }}
+                    {{ $usuario->data_ativacao->format('d/m/Y H:i') }} por {{ optional($usuario->ativadoPor)->nome ?? 'N/A' }}
                 @else
                     N/A
                 @endif
             </p>
             <p class="card-text"><strong>Última Inativação:</strong> 
                 @if($usuario->data_inativacao)
-                    {{ $usuario->data_inativacao->format('d/m/Y H:i') }} por {{ $usuario->inativadoPor->nome ?? 'N/A' }}
+                    {{ $usuario->data_inativacao->format('d/m/Y H:i') }} por {{ optional($usuario->inativadoPor)->nome ?? 'N/A' }}
                 @else
                     N/A
                 @endif

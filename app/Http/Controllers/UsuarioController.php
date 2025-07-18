@@ -89,12 +89,19 @@ class UsuarioController extends Controller
     // Altera status de ativo/inativo
     public function toggleStatus(Request $request, $id)
     {
+        // Valida o campo 'ativo' para garantir que seja um booleano
         $request->validate(['ativo' => 'required|boolean']);
 
+        // Encontra o usuário pelo ID
         $usuario = Usuario::findOrFail($id);
+
+        // Atualiza o status de ativo/inativo
         $usuario->ativo = $request->ativo;
+
+        // Salva a alteração
         $usuario->save();
 
+        // Redireciona com mensagem de sucesso
         return redirect()->route('usuarios.index')->with('success', 'Status do usuário atualizado com sucesso.');
     }
 
