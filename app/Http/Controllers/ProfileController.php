@@ -2,55 +2,90 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Formulário de edição do perfil.
      */
     public function edit(Request $request): View
     {
         return view('profile.edit', [
-            'user' => $request->user(),
+            'usuario' => $request->user(),
         ]);
     }
 
     /**
-     * Update the user's profile information.
+     * Formulário para alteração de senha.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function editSenha(): View
     {
-        $request->user()->fill($request->validated());
+        return view('profile.edit-senha');
+    }
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+    /**
+     * Atualiza os dados do perfil (exceto senha).
+     */
+    public function update(Request $request)
+    {
+        $usuario = $request->user();
+
+        $request->validate([
+            'matricula' => ['required', 'string', 'max:255', 'unique:usuarios,matricula,' . $usuario->id],
+            'nome' => ['required', 'string', 'max:255'],
+        ]);
+
+        $usuario->matricula = $request->matricula;
+        $usuario->nome = $request->nome;
+        $usuario->save();
+
+        return Redirect::route('profile.edit')->with('status', 'perfil-atualizado');
+    }
+
+    /**
+     * Atualiza a senha do usuário.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'senha_atual' => ['required', 'string'],
+            'nova_senha' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $usuario = $request->user();
+
+        if (!Hash::check($request->senha_atual, $usuario->senha)) {
+            return back()->withErrors(['senha_atual' => 'Senha atual incorreta.']);
         }
 
-        $request->user()->save();
+        $usuario->senha = Hash::make($request->nova_senha);
+        $usuario->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return back()->with('status', 'senha-atualizada');
     }
 
     /**
-     * Delete the user's account.
+     * Exclui a conta do usuário.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request)
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $request->validate([
+            'senha' => ['required', 'string'],
         ]);
 
-        $user = $request->user();
+        $usuario = $request->user();
+
+        if (!Hash::check($request->senha, $usuario->senha)) {
+            return back()->withErrors(['senha' => 'Senha incorreta.']);
+        }
 
         Auth::logout();
-
-        $user->delete();
+        $usuario->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

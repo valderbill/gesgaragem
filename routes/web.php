@@ -23,47 +23,32 @@ use App\Http\Controllers\RelatorioRegistroVeiculoController;
 use App\Http\Controllers\RelatorioOcorrenciaController;
 use App\Http\Controllers\RelatorioMotoristaController;
 
-/*
-|--------------------------------------------------------------------------|
-| Rotas de autenticação manual (caso não use Breeze/Jetstream)             |
-|--------------------------------------------------------------------------|
-*/
+// Página pública
+Route::get('/', fn() => view('welcome'));
+
+// Autenticação
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-/*
-|--------------------------------------------------------------------------|
-| Página pública                                                           |
-|--------------------------------------------------------------------------|
-*/
-Route::get('/', fn() => view('welcome'));
-
-/*
-|--------------------------------------------------------------------------|
-| Dashboard protegida (após login)                                          |
-|--------------------------------------------------------------------------|
-*/
+// Dashboard protegida
 Route::get('/dashboard', fn() => view('dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-/*
-|--------------------------------------------------------------------------|
-| Perfil do usuário autenticado                                             |
-|--------------------------------------------------------------------------|
-*/
+// Perfil do usuário
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // ✅ Corrigido: nome da rota agora é 'senha.atualizar'
+    Route::get('/profile/senha', [ProfileController::class, 'editSenha'])->name('senha.edit');
+    Route::patch('/profile/senha', [ProfileController::class, 'updatePassword'])->name('senha.atualizar');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-/*
-|--------------------------------------------------------------------------|
-| Redirecionamento por perfil                                                |
-|--------------------------------------------------------------------------|
-*/
+// Redirecionamento baseado no perfil do usuário
 Route::get('/redirect', function () {
     $usuario = Auth::user();
     $perfilNome = optional($usuario->perfil)->nome;
@@ -74,55 +59,38 @@ Route::get('/redirect', function () {
         'recepcionista'   => redirect()->route('recepcionista.dashboard'),
         default           => redirect()->route('home'),
     };
-})->middleware(['auth'])->name('perfil.redirect');
+})->middleware('auth')->name('perfil.redirect');
 
-/*
-|--------------------------------------------------------------------------|
-| Dashboards por perfil                                                     |
-|--------------------------------------------------------------------------|
-*/
-Route::middleware(['auth'])->group(function () {
+// Dashboards específicos
+Route::middleware('auth')->group(function () {
     Route::view('/admin/dashboard', 'admin.dashboard')->name('admin.dashboard');
     Route::view('/vigilante/dashboard', 'vigilante.dashboard')->name('vigilante.dashboard');
     Route::view('/recepcionista/dashboard', 'recepcionista.dashboard')->name('recepcionista.dashboard');
     Route::view('/home', 'home')->name('home');
 });
 
-/*
-|--------------------------------------------------------------------------|
-| Rotas que exigem autenticação (sistema interno)                           |
-| OBS: Mover aqui garante sessão + auth p/ buscar dados do painel.         |
-|--------------------------------------------------------------------------|
-*/
-Route::middleware(['auth'])->group(function () {
+// Rotas protegidas
+Route::middleware('auth')->group(function () {
 
-    /*
-    |----------------------------------------------------------------------|
-    | Buscas e autocomplete                                                |
-    |----------------------------------------------------------------------|
-    */
+    // APIs e buscas
     Route::get('/veiculos/buscar', [VeiculoController::class, 'buscar'])->name('veiculos.buscar');
     Route::get('/veiculos/buscar-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca'])->name('veiculos.buscarPorPlaca');
     Route::get('/veiculos/{id}/buscar', [VeiculoController::class, 'buscarPorId'])->name('veiculos.buscarPorId');
     Route::get('/api/motorista-por-placa/{placa}', [VeiculoController::class, 'motoristaPorPlaca']);
     Route::get('/api/veiculo-por-placa/{placa}', [VeiculoController::class, 'buscarPorPlaca']);
+
     Route::get('/acessos/buscar', [AcessoLiberadoController::class, 'buscar'])->name('acessos.buscar');
     Route::get('/registro-veiculos/buscar-motoristas-acesso', [RegistroVeiculoController::class, 'buscarMotoristasAcesso'])->name('registro_veiculos.buscar_motoristas_acesso');
 
-    /*
-    |----------------------------------------------------------------------|
-    | Seleção de Estacionamento                                             |
-    |----------------------------------------------------------------------|
-    */
+    // Seleção de estacionamento
     Route::get('/selecionar-estacionamento', [EstacionamentoController::class, 'selecionar'])->name('selecionar.estacionamento');
     Route::post('/definir-estacionamento', [EstacionamentoController::class, 'definir'])->name('definir.estacionamento');
 
-    /*
-    |----------------------------------------------------------------------|
-    | Recursos principais                                                  |
-    |----------------------------------------------------------------------|
-    */
+    // Recursos principais
     Route::resource('usuarios', UsuarioController::class);
+    Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
+    Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'toggleStatus'])->name('usuarios.alternar-status');
+
     Route::resource('motoristas', MotoristaController::class);
     Route::patch('motoristas/{id}/alternar-status', [MotoristaController::class, 'alternarStatus'])->name('motoristas.alternar-status');
 
@@ -137,82 +105,51 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('estacionamentos', EstacionamentoController::class);
 
-    /*
-    |----------------------------------------------------------------------|
-    | Ocorrências e Acompanhamentos                                         |
-    |----------------------------------------------------------------------|
-    */
+    // Ocorrências e Acompanhamentos
     Route::resource('ocorrencias', OcorrenciaController::class);
     Route::get('acompanhamentos/{ocorrencia}/create', [AcompanhamentoController::class, 'create'])->name('acompanhamentos.create');
     Route::post('acompanhamentos/{ocorrencia}', [AcompanhamentoController::class, 'store'])->name('acompanhamentos.store');
 
-    /*
-    |----------------------------------------------------------------------|
-    | Perfis e Permissões                                                  |
-    |----------------------------------------------------------------------|
-    */
+    // Perfis e permissões
     Route::resource('perfis', PerfilController::class)->parameters(['perfis' => 'perfil']);
     Route::resource('permissoes', PermissaoController::class)->parameters(['permissoes' => 'permissao']);
 
-    /*
-    |----------------------------------------------------------------------|
-    | Ações extras de Usuário                                              |
-    |----------------------------------------------------------------------|
-    */
-    Route::patch('usuarios/{usuario}/alternar-status', [UsuarioController::class, 'toggleStatus'])->name('usuarios.alternar-status');
-    Route::post('usuarios/{usuario}/reset-senha', [UsuarioController::class, 'resetSenha'])->name('usuarios.resetSenha');
-
-    /*
-    |----------------------------------------------------------------------|
-    | Painel de dados (CARDS / GRÁFICO)                                     |
-    |----------------------------------------------------------------------|
-    */
+    // Painel
     Route::get('/painel/dados', [PainelController::class, 'dados'])->name('painel.dados');
 
-    /*
-    |----------------------------------------------------------------------|
-    | Mensagens                                                            |
-    |----------------------------------------------------------------------|
-    */
+    // Mensagens
     Route::resource('mensagens', MensagemController::class);
 
-    /*
-    |----------------------------------------------------------------------|
-    | Relatórios                                                           |
-    |----------------------------------------------------------------------|
-    */
-    // Veículos
-    Route::prefix('relatorios/veiculos')->name('relatorios.veiculos.')->group(function () {
-        Route::get('/', [RelatorioVeiculoController::class, 'index'])->name('index');
-        Route::get('/exportar', [RelatorioVeiculoController::class, 'exportar'])->name('exportar');
-        Route::get('/{relatorio}', [RelatorioVeiculoController::class, 'show'])->name('show');
-    });
+    // Relatórios
+    Route::prefix('relatorios')->group(function () {
 
-    // Usuários
-    Route::prefix('relatorios/usuarios')->name('relatorios.usuarios.')->group(function () {
-        Route::get('/', [RelatorioUsuarioController::class, 'index'])->name('index');
-        Route::get('/exportar', [RelatorioUsuarioController::class, 'exportar'])->name('exportar');
-    });
+        Route::prefix('veiculos')->name('relatorios.veiculos.')->group(function () {
+            Route::get('/', [RelatorioVeiculoController::class, 'index'])->name('index');
+            Route::get('/exportar', [RelatorioVeiculoController::class, 'exportar'])->name('exportar');
+            Route::get('/{relatorio}', [RelatorioVeiculoController::class, 'show'])->name('show');
+        });
 
-    // Registro de Veículos
-    Route::prefix('relatorios/registro-veiculos')->name('relatorios.registros.')->group(function () {
-        Route::get('/', [RelatorioRegistroVeiculoController::class, 'index'])->name('index');
-        Route::get('/exportar', [RelatorioRegistroVeiculoController::class, 'exportar'])->name('exportar');
-    });
+        Route::prefix('usuarios')->name('relatorios.usuarios.')->group(function () {
+            Route::get('/', [RelatorioUsuarioController::class, 'index'])->name('index');
+            Route::get('/exportar', [RelatorioUsuarioController::class, 'exportar'])->name('exportar');
+        });
 
-    // Ocorrências
-    Route::prefix('relatorios/ocorrencias')->name('relatorios.ocorrencias.')->group(function () {
-        Route::get('/', [RelatorioOcorrenciaController::class, 'index'])->name('index');
-        Route::get('/exportar', [RelatorioOcorrenciaController::class, 'exportar'])->name('exportar');
-        Route::get('/exportar/{id}', [RelatorioOcorrenciaController::class, 'exportarIndividual'])->name('exportar_individual');
-        Route::post('/exportar-selecionadas', [RelatorioOcorrenciaController::class, 'exportarSelecionadas'])->name('exportar_selecionadas');
-    });
+        Route::prefix('registro-veiculos')->name('relatorios.registros.')->group(function () {
+            Route::get('/', [RelatorioRegistroVeiculoController::class, 'index'])->name('index');
+            Route::get('/exportar', [RelatorioRegistroVeiculoController::class, 'exportar'])->name('exportar');
+        });
 
-    // Motoristas
-    Route::prefix('relatorios/motoristas')->name('relatorios.motoristas.')->group(function () {
-        Route::get('/', [RelatorioMotoristaController::class, 'index'])->name('index');
-        Route::get('/exportar', [RelatorioMotoristaController::class, 'exportar'])->name('exportar');
-        Route::post('/exportar-selecionados', [RelatorioMotoristaController::class, 'exportarSelecionados'])->name('exportar_selecionados');
-    });
+        Route::prefix('ocorrencias')->name('relatorios.ocorrencias.')->group(function () {
+            Route::get('/', [RelatorioOcorrenciaController::class, 'index'])->name('index');
+            Route::get('/exportar', [RelatorioOcorrenciaController::class, 'exportar'])->name('exportar');
+            Route::get('/exportar/{id}', [RelatorioOcorrenciaController::class, 'exportarIndividual'])->name('exportar_individual');
+            Route::post('/exportar-selecionadas', [RelatorioOcorrenciaController::class, 'exportarSelecionadas'])->name('exportar_selecionadas');
+        });
 
+        Route::prefix('motoristas')->name('relatorios.motoristas.')->group(function () {
+            Route::get('/', [RelatorioMotoristaController::class, 'index'])->name('index');
+            Route::get('/exportar', [RelatorioMotoristaController::class, 'exportar'])->name('exportar');
+            Route::post('/exportar-selecionados', [RelatorioMotoristaController::class, 'exportarSelecionados'])->name('exportar_selecionados');
+        });
+    });
 });
