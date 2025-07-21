@@ -2,22 +2,23 @@
 
 @section('content')
     <style>
-        .img-destaque {
-            width: 100%;
-            height: auto;
-            max-width: 600px;
-            max-height: 500px;
-            object-fit: contain;
-            display: block;
-            margin: 0 auto;
-        }
+       .img-destaque {
+           width: 90%;             
+           max-width: 2200px;       
+           height: auto;           
+           object-fit: contain;
+           display: block;
+           margin: 30px auto;     
+       }
+
+
 
         .info-boxes {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             gap: 30px;
-            margin-top: 30px;
+            margin-top: 20px;
         }
 
         .info-box {
@@ -44,7 +45,7 @@
     </style>
 
     <div class="container text-center">
-        <img src="{{ asset('images/foto.png') }}"
+        <img src="{{ asset('images/LISTA2.jpg') }}"
              alt="Imagem destaque"
              class="img-fluid rounded shadow-sm img-destaque">
 
