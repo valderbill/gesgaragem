@@ -16,7 +16,7 @@
         }
 
         .logo img {
-            max-width: 100px;
+            max-width: 210px;
         }
 
         h2 {
@@ -62,7 +62,7 @@
 <body>
     {{-- Logo --}}
     <div class="logo">
-        <img src="{{ public_path('images/foto.png') }}" alt="Logo">
+        <img src="{{ public_path('images/logo_atual.png') }}" alt="Logo">
     </div>
 
     {{-- Título --}}

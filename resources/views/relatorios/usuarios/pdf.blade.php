@@ -17,7 +17,7 @@
 </head>
 <body>
     <div class="logo">
-        <img src="{{ public_path('images/foto.png') }}" alt="Logo">
+        <img src="{{ public_path('images/logo_atual.png') }}" alt="Logo" style="max-width: 290px;">
     </div>
 
     <h2>Relatório de Usuários</h2>

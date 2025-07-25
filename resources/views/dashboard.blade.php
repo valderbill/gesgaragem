@@ -3,7 +3,7 @@
 @section('content')
     <style>
        .img-destaque {
-           width: 90%;             
+           width: 75%;             
            max-width: 2200px;       
            height: auto;           
            object-fit: contain;
@@ -45,7 +45,7 @@
     </style>
 
     <div class="container text-center">
-        <img src="{{ asset('images/LISTA2.jpg') }}"
+        <img src="{{ asset('images/LISTA4.jpg') }}"
              alt="Imagem destaque"
              class="img-fluid rounded shadow-sm img-destaque">
 

@@ -22,6 +22,7 @@ use App\Http\Controllers\RelatorioUsuarioController;
 use App\Http\Controllers\RelatorioRegistroVeiculoController;
 use App\Http\Controllers\RelatorioOcorrenciaController;
 use App\Http\Controllers\RelatorioMotoristaController;
+use App\Http\Controllers\RelatorioAcessoLiberadoController;  // Controller de relatórios de acessos liberados
 
 // Página pública
 Route::get('/', fn() => view('welcome'));
@@ -41,7 +42,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // ✅ Corrigido: nome da rota agora é 'senha.atualizar'
     Route::get('/profile/senha', [ProfileController::class, 'editSenha'])->name('senha.edit');
     Route::patch('/profile/senha', [ProfileController::class, 'updatePassword'])->name('senha.atualizar');
 
@@ -150,6 +150,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [RelatorioMotoristaController::class, 'index'])->name('index');
             Route::get('/exportar', [RelatorioMotoristaController::class, 'exportar'])->name('exportar');
             Route::post('/exportar-selecionados', [RelatorioMotoristaController::class, 'exportarSelecionados'])->name('exportar_selecionados');
+        });
+
+        Route::prefix('acessos_liberados')->name('relatorios.acessos_liberados.')->group(function () {
+            Route::get('/', [RelatorioAcessoLiberadoController::class, 'index'])->name('index');
+            Route::get('/exportar', [RelatorioAcessoLiberadoController::class, 'exportar'])->name('exportar');
         });
     });
 });

@@ -18,7 +18,7 @@
 
     <style>
         .avatar {
-            width: 50px;
+            width: 250px;
             height: auto;
             border-radius: 10px;
             object-fit: contain;
@@ -53,7 +53,7 @@
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <!-- Logo e título -->
             <a class="navbar-brand d-flex align-items-center" href="{{ url('/selecionar-estacionamento') }}">
-                <img src="{{ asset('images/foto.png') }}" alt="Logo" class="avatar me-2">
+                <img src="{{ asset('images/logo_atual.png') }}" alt="Logo" class="avatar me-2">
                 <strong>Sistema Estacionamento</strong>
             </a>
 
@@ -91,6 +91,7 @@
                             <li><a class="dropdown-item" href="{{ route('relatorios.veiculos.index') }}">Veículos</a></li>
                             <li><a class="dropdown-item" href="{{ route('relatorios.usuarios.index') }}">Usuários</a></li>
                             <li><a class="dropdown-item" href="{{ route('relatorios.registros.index') }}">Registros de Veículos</a></li>
+                            <li><a class="dropdown-item" href="{{ route('relatorios.acessos_liberados.index') }}">Acessos Liberados</a></li>
                         </ul>
                     </li>
 

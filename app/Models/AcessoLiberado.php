@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +16,12 @@ class AcessoLiberado extends Model
         'usuario_id',
         'status',
     ];
+
+    // Relacionamento com o Usuário (Criador do Acesso)
+    public function criador()
+    {
+        return $this->belongsTo(\App\Models\Usuario::class, 'usuario_id');
+    }
 
     /**
      * 🔠 Mutator: Nome em MAIÚSCULAS

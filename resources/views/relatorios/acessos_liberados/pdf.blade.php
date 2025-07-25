@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Relatório de Veículos</title>
+    <title>Relatório de Acessos Liberados</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -48,15 +48,18 @@
         .filtros strong {
             margin-right: 5px;
         }
-    </style>   
+    </style>
 </head>
 <body>
+    <!-- Logo -->
     <div class="logo">
         <img src="{{ public_path('images/logo_atual.png') }}" alt="Logo" style="max-width: 210px;">
     </div>
 
-    <h2>Relatório de Veículos</h2>
+    <!-- Título do relatório -->
+    <h2>Relatório de Acessos Liberados</h2>
 
+    <!-- Filtros aplicados -->
     <div class="filtros">
         @foreach($filtros as $chave => $valor)
             @if(!empty($valor))
@@ -66,44 +69,27 @@
         @endforeach
     </div>
 
+    <!-- Tabela com os dados -->
     <table>
         <thead>
             <tr>
-                <th>Placa</th>
-                <th>Modelo</th>
-                <th>Marca</th>
-                <th>Cor</th>
-                <th>Tipo</th>
-                <th>Motorista</th>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Status</th>
                 <th>Data de Cadastro</th>
                 <th>Criado Por</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($veiculos as $veiculo)
+            @foreach($acessos as $acesso)
                 <tr>
-                    <td>{{ $veiculo->placa }}</td>
-                    <td>{{ $veiculo->modelo }}</td>
-                    <td>{{ $veiculo->marca }}</td>
-                    <td>{{ $veiculo->cor }}</td>
-                    <td>{{ $veiculo->tipo }}</td>
-                    <td>
-                        @if ($veiculo->tipo === 'OFICIAL')
-                            {{ optional($veiculo->motoristaOficial)->nome }}
-                        @elseif (in_array($veiculo->tipo, ['PARTICULAR', 'MOTO']))
-                            {{ optional($veiculo->acesso)->nome }}
-                        @else
-                            Não identificado
-                        @endif
-                    </td>
-                    <td>{{ \Carbon\Carbon::parse($veiculo->criado_em)->format('d/m/Y H:i') }}</td>
-                    <td>{{ optional($veiculo->criador)->nome ?? '-' }}</td>
+                    <td>{{ $acesso->nome }}</td>
+                    <td>{{ $acesso->matricula }}</td>
+                    <td>{{ $acesso->status == 't' ? 'Ativo' : 'Inativo' }}</td>
+                    <td>{{ \Carbon\Carbon::parse($acesso->created_at)->format('d/m/Y H:i') }}</td>
+                    <td>{{ optional($acesso->criador)->nome ?? '-' }}</td>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="8" style="text-align: center;">Nenhum veículo encontrado.</td>
-                </tr>
-            @endforelse
+            @endforeach
         </tbody>
     </table>
 </body>
